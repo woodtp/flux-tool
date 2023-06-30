@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "flux-tool"
+version = "0.1.0"
+description = ""
+authors = ["Anthony Wood <apwood@uh.edu>"]
+readme = "README.md"
+packages = [{include = "flux_tool"}]
+
+[tool.poetry.dependencies]
+python = "3.11.*"
+numpy = "^1.25.0"
+pandas = "^2.0.3"
+uproot = "^5.0.9"
+matplotlib = "^3.7.1"
+seaborn = "^0.12.2"
+mplhep = "^0.3.28"
+hist = "^2.6.3"
+scipy = "^1.11.1"
+
+[tool.poetry.scripts]
+flux-tool = "flux_tool.main:main"
+
+
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "^4.0.2"
+pyright = "^1.1.316"
+black = "^23.3.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
