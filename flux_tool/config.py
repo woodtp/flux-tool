@@ -72,7 +72,7 @@ class AnalysisConfig:
         yield from keys
 
     def ignored_hist_filter(self, hist_name: str) -> bool:
-        return not any(x in hist_name.lower() for x in self.ignored_histogram_names)
+        return not any(x.lower() in hist_name.lower() for x in self.ignored_histogram_names)
 
     @staticmethod
     def parse_filename(name: str) -> tuple[str, int]:

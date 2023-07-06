@@ -44,30 +44,6 @@ def parse_th1_name(name: str) -> HistInfo:
             raise ValueError(f"Cannot parse TH1 name: {name}")
 
 
-# def parse_th1_name(name: str) -> HistInfo:
-#     # Define the regular expression pattern to match the input string
-#     pattern = r'^(?P<category>\w+)_(?P<process>\w+)_(?P<flavor>\w+)
-#_(?P<universe>\d+)$'
-#
-#     # Match the pattern in the input string
-#     match = re.match(pattern, name)
-#
-#     if not match:
-#         raise ValueError(f"Cannot parse TH1 name: {name}")
-#
-#     # Extract the matched groups from the regex match
-#     groups = match.groupdict()
-#
-#     # Extract the relevant values from the matched groups
-#     # category = groups['category']
-#     process = groups['process']
-#     neutrino = groups['flavor']
-#     universe = int(groups['universe'])
-#
-#     # Return the named tuple with the extracted values
-#     return HistInfo(category=process, neutrino=neutrino, universe=universe)
-
-
 @contextmanager
 def open_tfile(file_path: Path, mode: str = "read"):
     """Context manager for opening and closing a ROOT TFile."""
