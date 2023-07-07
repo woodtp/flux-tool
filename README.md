@@ -37,6 +37,12 @@ Execute:
 $ python -m flux-tool -c <path/to/config.toml>
 ```
 
+Alternatively, this package can be imported directly into an existing python script:
+
+```python
+import flux_tool
+```
+
 ### Example `config.toml`
 ```toml
 output_file_name = "out.root"
