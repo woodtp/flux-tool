@@ -34,7 +34,7 @@ An example can be found below.
 
 Execute:
 ```bash
-$ python -m flux-tool -c <path/to/config.toml>`
+$ python -m flux-tool -c <path/to/config.toml>
 ```
 
 ### Example `config.toml`
