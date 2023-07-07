@@ -1,6 +1,7 @@
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/flux-tool)
-
 # Flux-Tool
+![PyPI](https://img.shields.io/pypi/v/flux-tool)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/flux-tool)
+![PyPI - License](https://img.shields.io/pypi/l/flux-tool)
 
 This package reads neutrino flux universes produced by Package to Predict the Flux (PPFX), and analyzes them to extract a flux prediction with uncertainties.
 All analysis products are output to a `.root` file specified in the `config.toml`
