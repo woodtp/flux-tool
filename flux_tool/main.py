@@ -1,4 +1,3 @@
-import importlib.util
 import logging
 import sys
 from argparse import ArgumentParser
@@ -83,5 +82,5 @@ def main():
     print(f"Finished in {end-start:0.2f} s")
 
 
-# if __name__ == "__main__":
-#     flux_tool()
+if __name__ == "__main__":
+    main()
