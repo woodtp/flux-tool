@@ -1,3 +1,5 @@
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ansicolortags.svg)](https://pypi.org/project/flux-tool/)
+
 # Flux-Tool
 
 This package reads neutrino flux universes produced by Package to Predict the Flux (PPFX), and analyzes them to extract a flux prediction with uncertainties.
