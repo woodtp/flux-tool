@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "flux-tool"
 version = "1.0.0"
-description = ""
+description = "Package used to study the output histograms from PPFX"
 authors = ["Anthony Wood <apwood@uh.edu>"]
 readme = "README.md"
 packages = [{include = "flux_tool"}]
