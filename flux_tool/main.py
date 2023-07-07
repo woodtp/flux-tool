@@ -76,6 +76,12 @@ def main():
 
     logging.basicConfig(format="[%(levelname)s] %(message)s", level=logging.INFO)
 
+    cfg = args.config
+
+    if cfg is None:
+        parser.print_help()
+        sys.exit(1)
+
     run(args.config)
     end = time()
 
