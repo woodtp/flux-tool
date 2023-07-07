@@ -1,6 +1,6 @@
 # flux_uncertainties configuration file
 
-output_file_name = "out_450.37_7991.98_79512.66_QEL11.root"
+output_file_name = "out.root"
 
 sources = "~/path/to/directory/containing/input/histograms"
 
