@@ -1,4 +1,4 @@
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ansicolortags.svg)](https://pypi.org/project/flux-tool/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/flux-tool)
 
 # Flux-Tool
 
