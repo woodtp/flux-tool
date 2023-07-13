@@ -7,7 +7,7 @@ import uproot
 from pandas import DataFrame
 from ROOT import TFile
 
-from flux_tool.flux_systematic_analysis import FluxSystematicsAnalysis
+from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.config import AnalysisConfig
 
 

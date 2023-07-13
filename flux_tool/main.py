@@ -5,7 +5,7 @@ from pathlib import Path
 
 from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
-from flux_tool.flux_systematic_analysis import FluxSystematicsAnalysis
+from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
 from flux_tool.visualizer import Visualizer
 

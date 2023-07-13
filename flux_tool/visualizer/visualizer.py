@@ -9,7 +9,7 @@ import uproot
 from matplotlib.pyplot import Figure
 from pandas import DataFrame
 
-from flux_tool.flux_systematic_analysis import FluxSystematicsAnalysis
+from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.config import AnalysisConfig
 from flux_tool.visualizer.covariance_matrix import plot_covariance
 from flux_tool.visualizer.fractional_uncertainties import plot_fractional_uncertainties
