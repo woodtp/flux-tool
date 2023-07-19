@@ -95,24 +95,24 @@ neutrino_parent_labels = {
 }
 
 ppfx_labels = {
-    "pCpi": r"$p + C \to \mathrm{\pi}^\pm + X$",
-    "pCnu": r"$p + C \to N + X$",
-    "pCk": r"$p + C \to K + X$",
-    "pCQEL": r"$p + C$ (QEL)",
-    "nCpi": r"$n + C \to \mathrm{\pi}^\pm + X$",
-    "mesinc": r"$(\mathrm{\pi}^\pm, K) + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_projectile_K0": r"$K^0 + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_projectile_Km": r"$K^{-} + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_projectile_Kp": r"$K^{+} + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_projectile_pip": r"$\pi^{+} + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_projectile_pim": r"$\pi^{-} + A \to (\mathrm{\pi}^\pm, K, N) + X$",
-    "mesinc_daughter_K0": r"$(\mathrm{\pi}^\pm, K) + A \to K^0 + X$",
-    "mesinc_daughter_Km": r"$(\mathrm{\pi}^\pm, K) + A \to K^{-} + X$",
-    "mesinc_daughter_Kp": r"$(\mathrm{\pi}^\pm, K) + A \to K^{+} + X$",
-    "mesinc_daughter_pip": r"$(\mathrm{\pi}^\pm, K) + A \to \pi^{+} + X$",
-    "mesinc_daughter_pim": r"$(\mathrm{\pi}^\pm, K) + A \to \pi^{-} + X$",
-    "nua": r"$N + A \to X$",
-    "nuAlFe": r"$N + (Al, Fe)\to X$",
+    "pCpi": r"$\mathrm{p + C \to \pi^\pm + X}$",
+    "pCnu": r"$\mathrm{p + C \to N + X}$",
+    "pCk": r"$\mathrm{p + C \to K + X}$",
+    "pCQEL": r"$\mathrm{p + C}$ (QEL)",
+    "nCpi": r"$\mathrm{n + C \to \pi^\pm + X}$",
+    "mesinc": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_K0": r"$\mathrm{K^0 + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_Km": r"$\mathrm{K^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_daughter_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
+    "mesinc_daughter_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
+    "mesinc_daughter_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
+    "mesinc_daughter_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
+    "mesinc_daughter_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
+    "nua": r"$\mathrm{N + A \to X}$",
+    "nuAlFe": r"$\mathrm{N + (Al, Fe)\to X}$",
     "att": "Attenuation",
     "others": "Others",
     "total": "Total",
@@ -134,14 +134,14 @@ def get_prop_cycler() -> Cycler:
     return prop_cycle
 
 
-def place_header(ax: Axes, header: str) -> None:
+def place_header(ax: Axes, header: str, fontsize=28) -> None:
     ax.text(
         0.0,
         1.015,
         header,
         fontweight="bold",
         fontstyle="italic",
-        fontsize=28,
+        fontsize=fontsize,
         transform=ax.transAxes,
     )
 

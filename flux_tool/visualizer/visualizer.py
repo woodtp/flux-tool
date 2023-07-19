@@ -242,6 +242,7 @@ class Visualizer:
                 self.bin_edges,
                 ["nue", "nuebar"],
                 is_fhc=is_fhc,
+                xlim=self.xlim,
             )
 
             full_path_pdf1 = self.save_figure(
@@ -257,6 +258,7 @@ class Visualizer:
                 self.bin_edges,
                 ["numu", "numubar"],
                 is_fhc=is_fhc,
+                xlim=self.xlim,
             )
 
             full_path_pdf2 = self.save_figure(

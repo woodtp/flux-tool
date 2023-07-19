@@ -46,14 +46,24 @@ def plot_ppfx_correction(
         nominal_labels.append(f"{label} Nominal")
         correction_labels.append(label + correction_suffix)
 
+    correction_opts = {
+            "color": None,
+            "marker": "o",
+            }
+
+    if any(["nue" in nu for nu in neutrinos]):
+        correction_opts.update({
+            "color": ["C2", "C3"],
+            "marker": "s"
+        })
+
     hep.histplot(
         H=nominal_flux,
         bins=bins,
         binwnorm=True,
-        histtype="fill",
+        histtype="step",
         label=nominal_labels,
-        color="none",
-        edgecolor=["k", "gray"],
+        color=["k", "gray"],
         lw=2,
         ax=ax,
     )
@@ -67,9 +77,10 @@ def plot_ppfx_correction(
         binwnorm=True,
         elinewidth=3,
         capsize=4,
-        marker="o",
         markersize=14,
+        markerfacecolor=[None, "none"],
         ax=ax,
+        **correction_opts
     )
 
     ax.set_ylabel(ylabel)
