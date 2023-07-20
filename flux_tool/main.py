@@ -7,7 +7,7 @@ from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
-from flux_tool.visualizer import Visualizer
+# from flux_tool.visualizer import Visualizer
 
 try:
     import ROOT
@@ -54,9 +54,9 @@ def run(cfg_path: str):
     exporter.export_ppfx_output()
 
     # TODO
-    vis = Visualizer(config=cfg, analysis=analysis)
-
-    vis.save_plots()
+    # vis = Visualizer(config=cfg, analysis=analysis)
+    #
+    # vis.save_plots()
 
 
 def main():
