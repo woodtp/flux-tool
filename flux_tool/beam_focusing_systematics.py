@@ -100,19 +100,6 @@ class BeamFocusingSystematics:
     def covariance_matrices(self) -> pd.DataFrame:
         flux_shifts = self.flux_shifts.loc["absolute"]
 
-        # for horn in ["fhc", "rhc"]:
-        #     for nu in ["nue", "nuebar", "numu", "numubar"]:
-        #         if (nu == "numu") or (nu == "nue"):
-        #             if horn == "rhc":
-        #                 flux_shifts.loc[(horn, nu), (8, 9)] = 0.0
-        #             flux_shifts.loc[(horn, nu, 1):(horn, nu, 6), 32] = 0.0
-        #         if (nu == "nuebar") or (nu == "nue"):
-        #             flux_shifts.loc[(horn, nu, 1):(horn, nu, 6), 10] = 0.0
-        #             flux_shifts.loc[(horn, nu, 1):(horn, nu, 6), 11] *= 2.0
-        #         if nu == "numubar":
-        #             flux_shifts.loc[(horn, nu), 32] = 0.0
-        #         flux_shifts.loc[(horn, nu, 6):(horn, nu, 13), (21, 22)] = 0.0
-
         beam_covs_abs = pd.concat(
             [
                 pd.DataFrame(np.outer(df, df), index=df.index, columns=df.index)
