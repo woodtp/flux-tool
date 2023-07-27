@@ -462,6 +462,10 @@ class FluxSystematicsAnalysis:
                     lambda x: f"covariance_matrices/beam/run_{x}/hcov_{x}_abs",
                 ),
                 (
+                    self.beam_systematics.correlation_matrices,
+                    lambda x: f"covariance_matrices/beam/run_{x}/hcorr_{x}",
+                ),
+                (
                     self.beam_systematics.total_covariance_matrix.loc["fractional"],
                     "covariance_matrices/beam/hcov_total",
                 ),
@@ -490,6 +494,22 @@ class FluxSystematicsAnalysis:
                     th1.SetTitle(";E_{#nu} [GeV]; Fractional Uncertainty")
                     product_dict[
                         f"fractional_uncertainties/beam/{run_id}/{hist_title}"
+                    ] = th1
+            for (
+                run_id,
+                series,
+            ) in self.beam_systematics.flux_shifts.items():
+                group = series.groupby(level=group_levels)
+                for (horn, nu), hist in group:  # type: ignore
+                    hist_title = f"hsyst_beam_{run_id}_{horn}_{nu}"
+                    th1 = convert_pandas_to_th1(
+                        series=hist,
+                        bin_edges=self.bin_edges,
+                        hist_title=hist_title,
+                    )
+                    th1.SetTitle(";E_{#nu} [GeV]; #phi_{x} - #phi_{nom} / #phi_{nom}")
+                    product_dict[
+                        f"beam_systematic_shifts/{hist_title}"
                     ] = th1
 
         for mat, title_gen in matrix_objects:

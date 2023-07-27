@@ -5,7 +5,8 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from flux_tool.helpers import calculate_correlation_matrix, convert_pandas_to_th1
+from flux_tool.helpers import (calculate_correlation_matrix,
+                               convert_pandas_to_th1)
 
 
 def smooth_stat_fluctuations(df: pd.DataFrame, bin_edges: np.ndarray) -> pd.DataFrame:
@@ -54,11 +55,15 @@ class BeamFocusingSystematics:
         # All runs have a +/- 1sigma flux variant except for runs 30 and 32
         # scale_factors = (ncol - 3) * [0.5] + 2 * [1.0]
 
-        beam_shifts = (self._beam_pt - self.nominal_run.values).drop(
+        nom_vals = self.nominal_run.values
+
+        beam_shifts = (self._beam_pt - nom_vals).drop(
             labels=[15], axis=1
         )  # * scale_factors
 
-        beam_fractional_shifts = beam_shifts / self.nominal_run.values
+        beam_fractional_shifts = beam_shifts.divide(nom_vals, fill_value=0)
+
+        beam_fractional_shifts[beam_fractional_shifts.isna()] = 0
 
         if self.smoothing:
             beam_fractional_shifts = smooth_stat_fluctuations(
@@ -109,6 +114,7 @@ class BeamFocusingSystematics:
         )
 
         covs = {
+            "beam_power": beam_covs_abs.loc[1],
             # "horn_current": 0.5 * (beam_covs_abs.loc[8] + beam_covs_abs.loc[9]),
             "horn_current_plus": beam_covs_abs.loc[8],
             "horn1_x": 0.5 * (beam_covs_abs.loc[10] + beam_covs_abs.loc[11]),
