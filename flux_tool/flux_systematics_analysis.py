@@ -498,7 +498,7 @@ class FluxSystematicsAnalysis:
             for (
                 run_id,
                 series,
-            ) in self.beam_systematics.flux_shifts.items():
+            ) in self.beam_systematics.flux_shifts.loc["fractional"].items():
                 group = series.groupby(level=group_levels)
                 for (horn, nu), hist in group:  # type: ignore
                     hist_title = f"hsyst_beam_{run_id}_{horn}_{nu}"

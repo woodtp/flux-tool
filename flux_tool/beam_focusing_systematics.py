@@ -61,7 +61,7 @@ class BeamFocusingSystematics:
             labels=[15], axis=1
         )  # * scale_factors
 
-        beam_fractional_shifts = beam_shifts.divide(nom_vals, fill_value=0)
+        beam_fractional_shifts = beam_shifts / nom_vals
 
         beam_fractional_shifts[beam_fractional_shifts.isna()] = 0
 
@@ -69,7 +69,7 @@ class BeamFocusingSystematics:
             beam_fractional_shifts = smooth_stat_fluctuations(
                 beam_fractional_shifts, self.bin_edges
             )
-            beam_shifts = beam_fractional_shifts * self.nominal_run.values
+            beam_shifts = beam_fractional_shifts * nom_vals
 
         flux_shifts_df = pd.concat(
             [beam_shifts, beam_fractional_shifts], keys=["absolute", "fractional"]
