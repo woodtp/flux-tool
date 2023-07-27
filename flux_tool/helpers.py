@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray, ArrayLike
 from ROOT import TH1D, TH2D  # type: ignore
 
 
@@ -15,17 +16,23 @@ def get_bin_edges_from_dataframe(df: pd.DataFrame) -> np.ndarray:
     return np.unique(df[energy_columns].to_numpy().flatten())
 
 
-def calculate_correlation_matrix(covariance_matrix: pd.DataFrame) -> pd.DataFrame:
+def calculate_correlation_matrix(
+    covariance_matrix: pd.DataFrame | NDArray[Any],
+) -> pd.DataFrame | NDArray[Any]:
     """Calculates the correlation matrix for a given covariance matrix."""
     variance = np.sqrt(np.diag(covariance_matrix))
     outer_product = np.outer(variance, variance)
-    correlation_matrix = np.divide(covariance_matrix, outer_product, out=np.zeros(covariance_matrix.shape), where=outer_product != 0)
-    # correlation_matrix[covariance_matrix == 0] = 0  # Set NaN elements to 0
+    correlation_matrix = np.divide(
+        covariance_matrix,
+        outer_product,
+        out=np.zeros(covariance_matrix.shape),
+        where=outer_product != 0,
+    )
     return correlation_matrix
 
 
 def convert_pandas_to_th1(
-    series: pd.Series,
+    series: ArrayLike,
     bin_edges: np.ndarray,
     hist_title: Optional[str] = None,
     uncerts: Optional[pd.Series] = None,
