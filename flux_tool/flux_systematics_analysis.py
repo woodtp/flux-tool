@@ -6,13 +6,10 @@ import pandas as pd
 from ROOT import TH1D, TH2D, TAxis  # type: ignore
 
 from flux_tool import uncertainty
-from flux_tool.beam_focusing_systematics import \
-    BeamFocusingSystematics
-from flux_tool.hadron_production_systematics import \
-    HadronProductionSystematics
+from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
+from flux_tool.hadron_production_systematics import HadronProductionSystematics
 from flux_tool.helpers import (calculate_correlation_matrix,
-                                                 convert_pandas_to_th1,
-                                                 convert_pandas_to_th2)
+                               convert_pandas_to_th1, convert_pandas_to_th2)
 from flux_tool.principal_component_analysis import PCA
 
 
@@ -43,7 +40,9 @@ class FluxSystematicsAnalysis:
         self.nominal_flux_df = nominal_flux_df
         self.ppfx_correction_df = ppfx_correction_df
         self.bin_edges = bin_edges
-        self.beam_systematics_is_initialized = len(self.nominal_flux_df["run_id"].unique()) > 1
+        self.beam_systematics_is_initialized = (
+            len(self.nominal_flux_df["run_id"].unique()) > 1
+        )
         self.horn_modes = list(self.nominal_flux_df["horn_polarity"].unique())
 
     def run(self, pca_threshold: float = 1) -> None:
@@ -145,10 +144,11 @@ class FluxSystematicsAnalysis:
         hp_mat = self.rescale_matrix(self.pca_covariance_matrix)
         total_mat = hp_mat + self.stat_uncert_matrix
         if self.beam_systematics_is_initialized:
-            return (
-                total_mat
-                + self.beam_systematics.total_covariance_matrix.loc["absolute"]
-            )
+            beam_tot_cov = self.beam_systematics.total_covariance_matrix.loc["absolute"]
+            beam_power_cov = self.beam_systematics.covariance_matrices.loc[
+                "absolute", "beam_power"
+            ]
+            return total_mat + beam_tot_cov + beam_power_cov
         return total_mat
 
     @property
@@ -498,7 +498,7 @@ class FluxSystematicsAnalysis:
             for (
                 run_id,
                 series,
-            ) in self.beam_systematics.flux_shifts.loc["fractional"].items():
+            ) in self.beam_systematics.beam_systematic_shifts.loc["fractional"].items():
                 group = series.groupby(level=group_levels)
                 for (horn, nu), hist in group:  # type: ignore
                     hist_title = f"hsyst_beam_{run_id}_{horn}_{nu}"
@@ -508,9 +508,7 @@ class FluxSystematicsAnalysis:
                         hist_title=hist_title,
                     )
                     th1.SetTitle(";E_{#nu} [GeV]; #phi_{x} - #phi_{nom} / #phi_{nom}")
-                    product_dict[
-                        f"beam_systematic_shifts/{hist_title}"
-                    ] = th1
+                    product_dict[f"beam_systematic_shifts/{hist_title}"] = th1
 
         for mat, title_gen in matrix_objects:
             product_dict |= self.export_matrices(mat, title_gen)

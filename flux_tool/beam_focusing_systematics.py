@@ -35,6 +35,7 @@ class BeamFocusingSystematics:
     smoothing: Optional[bool] = False
     nominal_run: pd.DataFrame = field(init=False)
     _beam_pt: pd.DataFrame = field(init=False)
+    _run_id_map: dict[str, int | tuple[int, int]] = field(init=False)
 
     def __post_init__(self) -> None:
         self._beam_pt = pd.pivot_table(
@@ -44,22 +45,41 @@ class BeamFocusingSystematics:
             columns=["run_id"],
         )["flux"]
 
+        self._run_id_map = {
+            "beam_power": 1,
+            "horn_current_plus": 8,
+            "horn1_x": (10, 11),
+            "horn1_y": (12, 13),
+            "beam_spot": (14, 16),
+            "water_layer": (21, 22),
+            "beam_shift_x": (24, 25),
+            "beam_shift_y_plus": 26,
+            "beam_shift_y_minus": 27,
+            "beam_div": 32,
+        }
+
         self.nominal_run = self._beam_pt[[15]]
 
         self.apply_systematic_selection()
 
+    def is_excluded(self, run_id: int) -> bool:
+        """Checks if run_id appears in the list of run_ids in the _run_id_map member variable.
+        Returns True if it doesn't.
+        """
+        return not any(
+            isinstance(item, int)
+            and item == run_id
+            or (isinstance(item, tuple) and len(item) == 2 and run_id in item)
+            for item in self._run_id_map.values()
+        )
+
     @cached_property
     def flux_shifts(self) -> pd.DataFrame:
-        # ncol = len(self._beam_pt.columns)
-
         # All runs have a +/- 1sigma flux variant except for runs 30 and 32
-        # scale_factors = (ncol - 3) * [0.5] + 2 * [1.0]
 
         nom_vals = self.nominal_run.values
 
-        beam_shifts = (self._beam_pt - nom_vals).drop(
-            labels=[15], axis=1
-        )  # * scale_factors
+        beam_shifts = (self._beam_pt - nom_vals).drop(labels=[15], axis=1)
 
         beam_fractional_shifts = beam_shifts / nom_vals
 
@@ -83,7 +103,8 @@ class BeamFocusingSystematics:
         return slice(index1, index2)
 
     def apply_systematic_selection(self):
-        self.flux_shifts.drop([9, 17, 18, 19, 20, 28, 29, 30], axis=1, inplace=True)
+        ids_to_drop = filter(self.is_excluded, self.flux_shifts.columns)
+        self.flux_shifts.drop(ids_to_drop, axis=1, inplace=True)
 
         water_layer_indexer = (
             slice(None),
@@ -102,10 +123,28 @@ class BeamFocusingSystematics:
         self.flux_shifts.loc[div_indexer] *= 0.0
 
     @cached_property
-    def covariance_matrices(self) -> pd.DataFrame:
-        flux_shifts = self.flux_shifts.loc["absolute"]
+    def beam_systematic_shifts(self):
+        flux_systs = {}
+        shifts = self.flux_shifts.loc["absolute"]
+        for key, run_id in self._run_id_map.items():
+            if isinstance(run_id, tuple):
+                id1, id2 = run_id
+                flux_systs[key] = 0.5 * (shifts[id1] + shifts[id2])
+                continue
+            flux_systs[key] = shifts[run_id]
 
-        beam_covs_abs = pd.concat(
+        df = pd.DataFrame(flux_systs, index=shifts.index)
+
+        df_frac = df / self.nominal_run.values
+        df_frac[df_frac.isna()] = 0
+
+        return pd.concat([df, df_frac], keys=["absolute", "fractional"])
+
+    @cached_property
+    def covariance_matrices(self) -> pd.DataFrame:
+        flux_shifts = self.beam_systematic_shifts.loc["absolute"]
+
+        covs = pd.concat(
             [
                 pd.DataFrame(np.outer(df, df), index=df.index, columns=df.index)
                 for _, df in flux_shifts.items()
@@ -113,43 +152,21 @@ class BeamFocusingSystematics:
             keys=flux_shifts.columns,
         )
 
-        covs = {
-            "beam_power": beam_covs_abs.loc[1],
-            # "horn_current": 0.5 * (beam_covs_abs.loc[8] + beam_covs_abs.loc[9]),
-            "horn_current_plus": beam_covs_abs.loc[8],
-            "horn1_x": 0.5 * (beam_covs_abs.loc[10] + beam_covs_abs.loc[11]),
-            "horn1_y": 0.5 * (beam_covs_abs.loc[12] + beam_covs_abs.loc[13]),
-            "beam_spot": 0.5 * (beam_covs_abs.loc[14] + beam_covs_abs.loc[16]),
-            # "horn2_x": beam_covs_abs.loc[17] + beam_covs_abs.loc[18],
-            # "horn2_y": beam_covs_abs.loc[19] + beam_covs_abs.loc[20],
-            "water_layer": 0.5 * (beam_covs_abs.loc[21] + beam_covs_abs.loc[22]),
-            "beam_shift_x": 0.5 * (beam_covs_abs.loc[24] + beam_covs_abs.loc[25]),
-            # "beam_shift_y": beam_covs_abs.loc[26] + beam_covs_abs.loc[27],
-            "beam_shift_plus_y": beam_covs_abs.loc[26],
-            "beam_shift_minus_y": beam_covs_abs.loc[27],
-            # "target_z": 0.5 * (beam_covs_abs.loc[28] + beam_covs_abs.loc[29]),
-            # "B_field": beam_covs_abs.loc[30],
-            "beam_div": beam_covs_abs.loc[32],
-        }
-
         nom_mat = np.outer(self.nominal_run, self.nominal_run)
 
-        covs_frac = {k: v / nom_mat for k, v in covs.items()}
+        grp_divide = lambda grp: np.divide(
+            grp.droplevel(0), nom_mat, out=np.zeros_like(grp), where=nom_mat != 0
+        )
 
-        beam_covs_combined = pd.concat(
-            list(covs.values()), keys=covs.keys(), names=beam_covs_abs.index.names
-        )
-        beam_covs_combined_frac = pd.concat(
-            list(covs_frac.values()),
-            keys=covs_frac.keys(),
-            names=beam_covs_abs.index.names,
-        )
+        covs_frac = covs.groupby(level=0).apply(grp_divide)
 
         beam_covariance_matrices = pd.concat(
-            [beam_covs_combined_frac, beam_covs_combined],
-            keys=["fractional", "absolute"],
+            [covs, covs_frac],
+            keys=["absolute", "fractional"],
             names=["scale", "category", "horn_polarity", "neutrino_mode", "bin"],
         )
+
+        beam_covariance_matrices.sort_index(inplace=True)
 
         return beam_covariance_matrices
 
@@ -163,8 +180,9 @@ class BeamFocusingSystematics:
 
     @cached_property
     def total_covariance_matrix(self) -> pd.DataFrame:
+        covs_abs = self.covariance_matrices.loc["absolute"]
         beam_total_covariance_matrix_abs = (
-            self.covariance_matrices.loc["absolute"]
+            covs_abs.iloc[covs_abs.index.get_level_values("category") != "beam_power"]
             .groupby(level=["horn_polarity", "neutrino_mode", "bin"])
             .sum()
         )
@@ -186,7 +204,6 @@ class BeamFocusingSystematics:
         corr = calculate_correlation_matrix(
             self.total_covariance_matrix.loc["absolute"]
         )
-
         return corr
 
     @cached_property
