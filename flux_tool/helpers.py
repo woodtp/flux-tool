@@ -3,8 +3,8 @@ from uuid import uuid4
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray, ArrayLike
-from ROOT import TH1D, TH2D  # type: ignore
+from numpy.typing import ArrayLike, NDArray
+from ROOT import TH1D, TH2D, TMatrixD  # type: ignore
 
 
 def get_bin_edges_from_dataframe(df: pd.DataFrame) -> np.ndarray:
@@ -32,7 +32,7 @@ def calculate_correlation_matrix(
 
 
 def convert_pandas_to_th1(
-    series: ArrayLike,
+    series: pd.Series,
     bin_edges: np.ndarray,
     hist_title: Optional[str] = None,
     uncerts: Optional[pd.Series] = None,
@@ -77,3 +77,8 @@ def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_title: str) -> TH2D:
         th2.GetYaxis().SetBinLabel(jj + 1, labely)
 
     return th2
+
+
+def convert_pandas_to_tmatrix(matrix: pd.DataFrame) -> TMatrixD:
+    nrow, ncol = matrix.shape
+    return TMatrixD(nrow, ncol, matrix.values, "D")

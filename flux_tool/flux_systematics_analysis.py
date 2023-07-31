@@ -1,15 +1,17 @@
 import itertools
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from ROOT import TH1D, TH2D, TAxis  # type: ignore
 
 from flux_tool import uncertainty
 from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
 from flux_tool.hadron_production_systematics import HadronProductionSystematics
 from flux_tool.helpers import (calculate_correlation_matrix,
-                               convert_pandas_to_th1, convert_pandas_to_th2)
+                               convert_pandas_to_th1, convert_pandas_to_th2,
+                               convert_pandas_to_tmatrix)
 from flux_tool.principal_component_analysis import PCA
 
 
@@ -152,7 +154,7 @@ class FluxSystematicsAnalysis:
         return total_mat
 
     @property
-    def total_correlation_matrix(self) -> pd.DataFrame:
+    def total_correlation_matrix(self) -> pd.DataFrame | NDArray[Any]:
         corr_mat = calculate_correlation_matrix(self.total_covariance_matrix)
         return corr_mat
 
@@ -275,25 +277,31 @@ class FluxSystematicsAnalysis:
 
         return df1
 
-    def export_matrices(
-        self,
+    @staticmethod
+    def _export_matrices(
         matrix: pd.DataFrame,
         title_gen: str | Callable[[str], str],
     ) -> dict[str, TH2D]:
         if isinstance(title_gen, str):
-            return {title_gen: convert_pandas_to_th2(matrix, hist_title=title_gen)}
+            return {
+                title_gen: convert_pandas_to_th2(matrix, hist_title=title_gen),
+                title_gen.replace("hcov", "cov").replace(
+                    "hcorr", "corr"
+                ): convert_pandas_to_tmatrix(matrix),
+            }
 
         export_dict = {}
 
         for category, hist in matrix.groupby(level=0):
             hist_title = title_gen(str(category))
-            export_dict[hist_title] = convert_pandas_to_th2(
-                hist.droplevel(0), hist_title=hist_title
-            )
+            h = hist.droplevel(0)
+            export_dict[hist_title] = convert_pandas_to_th2(h, hist_title=hist_title)
+            mat_title = hist_title.replace("hcov", "cov").replace("hcorr", "corr")
+            export_dict[mat_title] = convert_pandas_to_tmatrix(hist)
 
         return export_dict
 
-    def __export_nominal_flux_df(self):
+    def _export_nominal_flux_df(self):
         pt = pd.pivot_table(
             self.nominal_flux_df,
             index=("run_id", "category", "horn_polarity", "neutrino_mode", "bin"),
@@ -337,7 +345,7 @@ class FluxSystematicsAnalysis:
 
         return export_dict
 
-    def __export_flux_universes(self):
+    def _export_flux_universes(self):
         df = self.ppfx_correction_df.drop("run_id", axis=1)
         df["bin"] = df["bin"].astype(str)
         df = pd.pivot_table(
@@ -359,14 +367,18 @@ class FluxSystematicsAnalysis:
         product_dict = {}
         product_dict["matrix_axis"] = self.matrix_taxis
         product_dict["xaxis_variable_bins"] = self.xaxis_variable_bins
-        stat_mat_title = "hmat_stat"
+        stat_mat_title = "hstatistical_uncertainty_matrix"
         stat_uncert_mat = convert_pandas_to_th2(
             self.stat_uncert_matrix, hist_title=stat_mat_title
         )
+        stat_uncert_tmatrix = convert_pandas_to_tmatrix(self.stat_uncert_matrix)
         product_dict[f"statistical_uncertainties/{stat_mat_title}"] = stat_uncert_mat
+        product_dict[
+            "statistical_uncertainties/statistical_uncertainty_matrix"
+        ] = stat_uncert_tmatrix
 
-        product_dict |= self.__export_nominal_flux_df()
-        product_dict |= self.__export_flux_universes()
+        product_dict |= self._export_nominal_flux_df()
+        product_dict |= self._export_flux_universes()
 
         group_levels = ("horn_polarity", "neutrino_mode")
 
@@ -511,11 +523,14 @@ class FluxSystematicsAnalysis:
                     product_dict[f"beam_systematic_shifts/{hist_title}"] = th1
 
         for mat, title_gen in matrix_objects:
-            product_dict |= self.export_matrices(mat, title_gen)
+            product_dict |= self._export_matrices(mat, title_gen)
 
         product_dict["pca/hcov_pca"] = convert_pandas_to_th2(
-            dataframe=self.pca_covariance_matrix,
+            self.pca_covariance_matrix,
             hist_title="hcov_pca",
+        )
+        product_dict["pca/cov_pca"] = convert_pandas_to_tmatrix(
+            self.pca_covariance_matrix,
         )
 
         eigenvals = convert_pandas_to_th1(
