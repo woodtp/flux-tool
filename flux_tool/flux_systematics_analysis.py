@@ -142,6 +142,21 @@ class FluxSystematicsAnalysis:
         return taxis
 
     @property
+    def matrix_binning_str(self) -> str:
+        index = self.total_covariance_matrix.index
+        bins = self.bin_edges
+
+        isRHC = lambda horn: 1 if horn == "rhc" else 0
+
+        nu_pdg = {"nue": 12, "nuebar": -12, "numu": 14, "numubar": -14}
+
+        lines = ["variables: isRHC NeutrinoCode Enu Enu"]
+        for horn, nu, b in index:
+            lines.append(f"{isRHC(horn)} {nu_pdg[nu]} {bins[b-1]} {bins[b]}")
+
+        return "\n".join(lines)
+
+    @property
     def total_covariance_matrix(self) -> pd.DataFrame:
         hp_mat = self.rescale_matrix(self.pca_covariance_matrix)
         total_mat = hp_mat + self.stat_uncert_matrix

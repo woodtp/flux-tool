@@ -7,6 +7,7 @@ from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
+
 # from flux_tool.visualizer import Visualizer
 
 try:
@@ -53,6 +54,9 @@ def run(cfg_path: str):
 
     exporter.export_ppfx_output()
 
+    with open(exporter.products_file.parent / "flux_covariance_binning_NuMI_GeV.txt", "w") as f:
+        f.write(analysis.matrix_binning_str)
+
     # TODO
     # vis = Visualizer(config=cfg, analysis=analysis)
     #
@@ -74,7 +78,7 @@ def main():
 
     args = parser.parse_args()
 
-    logging.basicConfig(format="[%(levelname)s] %(message)s", level=logging.INFO)
+    logging.basicConfig(format="%(message)s", level=logging.INFO)
 
     cfg = args.config
 
