@@ -9,9 +9,12 @@ from ROOT import TH1D, TH2D, TAxis  # type: ignore
 from flux_tool import uncertainty
 from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
 from flux_tool.hadron_production_systematics import HadronProductionSystematics
-from flux_tool.helpers import (calculate_correlation_matrix,
-                               convert_pandas_to_th1, convert_pandas_to_th2,
-                               convert_pandas_to_tmatrix)
+from flux_tool.helpers import (
+    calculate_correlation_matrix,
+    convert_pandas_to_th1,
+    convert_pandas_to_th2,
+    convert_pandas_to_tmatrix,
+)
 from flux_tool.principal_component_analysis import PCA
 
 
@@ -81,11 +84,11 @@ class FluxSystematicsAnalysis:
                 smoothing=True,
             )
 
-        total_cov = self.hadron_systematics.covariance_matrices.loc[
+        total_cov = self.hadron_systematics.covariance_matrices.loc[ 
             ("fractional", "total")
         ]
 
-        pca = PCA(total_cov, threshold=pca_threshold)
+        pca = PCA(total_cov, threshold=pca_threshold) # type: ignore
 
         pca.fit()
 
