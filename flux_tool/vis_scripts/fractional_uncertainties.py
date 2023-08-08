@@ -201,9 +201,10 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
 
             place_header(ax, f"{header[horn]} {neutrino_labels[nu]}")
 
-            plt.savefig(
-                f"{output_dir}/{version[actual]}_meson/{horn}_{nu}_{version[actual]}_hadron_fractional_uncertainties.pdf"
-            )
+            for ext in ("pdf", "png"):
+                plt.savefig(
+                    f"{output_dir}/{version[actual]}_meson/{horn}_{nu}_{version[actual]}_hadron_fractional_uncertainties.{ext}"
+                )
 
 def plot_hadron_fractional_uncertainties_mesinc_only(
     products_file: Path | str, output_dir: str = "plots/had_systs"
@@ -291,6 +292,7 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
 
             place_header(ax, f"{header[horn]} {neutrino_labels[nu]}")
 
-            plt.savefig(
-                f"{output_dir}/{version[actual]}_meson_only/{horn}_{nu}_{version[actual]}_hadron_fractional_uncertainties.pdf"
-            )
+            for ext in ("pdf", "png"):
+                plt.savefig(
+                    f"{output_dir}/{version[actual]}_meson_only/{horn}_{nu}_{version[actual]}_hadron_fractional_uncertainties.{ext}"
+                )
