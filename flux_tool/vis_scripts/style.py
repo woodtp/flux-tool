@@ -145,6 +145,18 @@ def place_header(ax: Axes, header: str, fontsize=28) -> None:
         transform=ax.transAxes,
     )
 
+def icarus_preliminary(ax: Axes) -> None:
+    ax.text(
+        0.65,
+        1.015,
+        "ICARUS Preliminary",
+        fontweight="bold",
+        fontstyle="italic",
+        fontsize=28,
+        transform=ax.transAxes,
+    )
+
+
 
 def apply_style() -> None:
     plt.style.use(mplhep.style.ROOT)

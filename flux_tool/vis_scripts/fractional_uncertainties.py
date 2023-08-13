@@ -7,8 +7,9 @@ import numpy as np
 import uproot
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty
-from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
-                                         ppfx_labels, style, xlabel_enu)
+from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
+                                         place_header, ppfx_labels, style,
+                                         xlabel_enu)
 
 
 def plot_hadron_fractional_uncertainties(
@@ -39,6 +40,7 @@ def plot_hadron_fractional_uncertainties(
                 if "total" not in key
                 and "projectile" not in key
                 and "daughter" not in key
+                and "qel" not in key.lower()
             }
 
             absolute_uncertainties = {
@@ -101,7 +103,12 @@ def plot_hadron_fractional_uncertainties(
 
             place_header(ax, f"{header[horn]} {neutrino_labels[nu]}")
 
-            plt.savefig(f"{output_dir}/{horn}_{nu}_hadron_fractional_uncertainties.pdf")
+            icarus_preliminary(ax)
+
+            for ext in ("pdf", "png"):
+                plt.savefig(
+                    f"{output_dir}/{horn}_{nu}_hadron_fractional_uncertainties.{ext}"
+                )
 
 
 def plot_hadron_fractional_uncertainties_mesinc_breakout(
@@ -133,7 +140,10 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
                 for key, h in f["fractional_uncertainties/hadron/"].items(
                     filter_name=f"*{horn}*{nu}", cycle=False
                 )
-                if "total" not in key and ver not in key and "mesinc/" not in key
+                if "total" not in key
+                and ver not in key
+                and "mesinc/" not in key
+                and "qel" not in key.lower()
             }
 
             if ver == "daughter":
@@ -200,11 +210,13 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
             ax.tick_params(labelsize=28)
 
             place_header(ax, f"{header[horn]} {neutrino_labels[nu]}")
+            icarus_preliminary(ax)
 
             for ext in ("pdf", "png"):
                 plt.savefig(
                     f"{output_dir}/{version[actual]}_meson/{horn}_{nu}_{version[actual]}_hadron_fractional_uncertainties.{ext}"
                 )
+
 
 def plot_hadron_fractional_uncertainties_mesinc_only(
     products_file: Path | str, output_dir: str = "plots/had_systs"
@@ -291,6 +303,7 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
             ax.tick_params(labelsize=28)
 
             place_header(ax, f"{header[horn]} {neutrino_labels[nu]}")
+            icarus_preliminary(ax)
 
             for ext in ("pdf", "png"):
                 plt.savefig(
