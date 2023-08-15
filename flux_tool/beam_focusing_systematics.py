@@ -141,19 +141,35 @@ class BeamFocusingSystematics:
         df_frac = df / self.nominal_run.values
         df_frac[df_frac.isna()] = 0
 
-        return pd.concat([df, df_frac], keys=["absolute", "fractional"])
+        beam_shifts = pd.concat(
+            [df, df_frac],
+            keys=["absolute", "fractional"],
+            names=["scale"] + df.index.names,
+        )
+
+        beam_shifts.columns.name = "category"
+
+        beam_shifts = (
+            beam_shifts.stack("category")
+            .reorder_levels(
+                ["scale", "category", "horn_polarity", "neutrino_mode", "bin"]
+            )
+            .sort_index()
+            .replace(-0.0, 0)
+        )
+
+        return beam_shifts
 
     @cached_property
     def covariance_matrices(self) -> pd.DataFrame:
         flux_shifts = self.beam_systematic_shifts.loc["absolute"]
 
-        covs = pd.concat(
-            [
-                pd.DataFrame(np.outer(df, df), index=df.index, columns=df.index)
-                for _, df in flux_shifts.items()
-            ],
-            keys=flux_shifts.columns,
-        )
+        def _calc_cov(x):
+            x = x.droplevel("category")
+            outer = np.outer(x, x)
+            return pd.DataFrame(outer, index=x.index, columns=x.index)
+
+        covs = flux_shifts.groupby("category").apply(_calc_cov).replace(-0.0, 0.0)
 
         nom_mat = np.outer(self.nominal_run, self.nominal_run)
 
@@ -169,7 +185,9 @@ class BeamFocusingSystematics:
             names=["scale", "category", "horn_polarity", "neutrino_mode", "bin"],
         )
 
-        beam_covariance_matrices.sort_index(inplace=True)
+        # beam_covariance_matrices = beam_covariance_matrices.replace(
+        #     -0.0, 0.0
+        # ).sort_index()
 
         return beam_covariance_matrices
 
@@ -210,38 +228,18 @@ class BeamFocusingSystematics:
         return corr
 
     @cached_property
-    def fractional_uncertainties(self) -> pd.DataFrame:
-        frac_uncerts = []
+    def fractional_uncertainties(self) -> pd.DataFrame | pd.Series:
+        levels = ["category", "horn_polarity", "neutrino_mode", "bin"]
 
-        cov_groups = self.covariance_matrices.loc["fractional"].groupby(
-            level=("category", "horn_polarity", "neutrino_mode")
-        )
-        for idx, mat in cov_groups:
-            diag = np.clip(
-                a=np.diag(mat[idx[1:]]),
-                a_min=0,
-                a_max=None,
-            )
-            sigmas = np.sqrt(diag)
-            uncerts = pd.Series(sigmas, index=mat.index, name=idx[0])
-            frac_uncerts.append(uncerts)
+        total_cov = self.total_covariance_matrix.loc["fractional"]
+        total_cov["category"] = "total"
+        total_cov = total_cov.set_index("category", append=True).reorder_levels(levels)
 
-        total_uncerts = []
+        covs = pd.concat([self.covariance_matrices.loc["fractional"], total_cov])
 
-        total_cov_groups = self.total_covariance_matrix.loc["fractional"].groupby(
-            level=["horn_polarity", "neutrino_mode"]
-        )
+        cov_groups = covs.groupby(level=levels[0])
 
-        for idx, mat in total_cov_groups:
-            sigmas = np.sqrt(np.diag(mat[idx]))
-            uncerts = pd.Series(sigmas, index=mat.index, name="total")
-            total_uncerts.append(uncerts)
+        # for some reason I get -0.0 for some values on the diagonal, so I'm wrapping in np.abs
+        diag_sqrt = lambda x: pd.Series(np.sqrt(np.abs(np.diag(x))), index=covs.columns)
 
-        frac_uncerts_df = pd.concat(frac_uncerts).unstack("category")
-        total_uncerts_df = pd.concat(total_uncerts)
-
-        fractional_uncertainties = pd.concat(
-            [frac_uncerts_df, total_uncerts_df], axis=1
-        )
-
-        return fractional_uncertainties
+        return cov_groups.apply(diag_sqrt).stack(levels[1:]).sort_index()  # type: ignore

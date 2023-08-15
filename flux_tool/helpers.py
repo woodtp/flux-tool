@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
-from ROOT import TH1D, TH2D, TMatrixD, TMatrixDSym  # type: ignore
+from ROOT import TH1D, TH2D, TMatrixDSym  # type: ignore
 
 
 def get_bin_edges_from_dataframe(df: pd.DataFrame) -> np.ndarray:
@@ -81,10 +81,16 @@ def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_name: str) -> TH2D:
     return th2
 
 
-def convert_pandas_to_tmatrix(matrix: pd.DataFrame, is_sym=True) -> TMatrixD:
-    if is_sym:
-        return TMatrixDSym(matrix.shape[0], matrix)
-    return TMatrixD(*matrix.shape, matrix)
+def convert_symmetric_ndarray_to_tmatrix(matrix: NDArray) -> TMatrixDSym:
+    m = TMatrixDSym(matrix.shape[0])
+    for i, x in enumerate(matrix):
+        for j, y in enumerate(x):
+            if i == j:
+                m[i, i] = y
+            elif i < j:
+                m[i, j] = y
+                m[j, i] = y
+    return m
 
 
 def convert_groups_to_dict(
