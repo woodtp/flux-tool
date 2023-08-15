@@ -1,37 +1,40 @@
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from flux_tool.helpers import (calculate_correlation_matrix,
                                convert_pandas_to_th1)
 
 
-def smooth_stat_fluctuations(df: pd.DataFrame, bin_edges: np.ndarray) -> pd.DataFrame:
+def smooth_stat_fluctuations(
+    df: pd.DataFrame, bin_edges: dict[str, np.ndarray]
+) -> pd.DataFrame:
     groups = df.stack("run_id").groupby(by=["run_id", "horn_polarity", "neutrino_mode"])
 
     smoothed_flux_list = []
 
-    for _, g in groups:
-        th1 = convert_pandas_to_th1(series=g, bin_edges=bin_edges)
+    for (_, _, nu), g in groups:  # type: ignore
+        th1 = convert_pandas_to_th1(series=g, bin_edges=bin_edges[nu])  # type: ignore
 
         th1.Smooth()
 
-        smoothed_fluxes = [th1[i[-2]] for i in g.index]
+        smoothed_fluxes = [th1[i[-2]] for i in g.index]  # type: ignore
 
         series = pd.Series(smoothed_fluxes, index=g.index)
 
         smoothed_flux_list.append(series)
 
-    return pd.concat(smoothed_flux_list).unstack("run_id")
+    return pd.concat(smoothed_flux_list).unstack("run_id")  # type: ignore
 
 
 @dataclass(repr=False)
 class BeamFocusingSystematics:
     beam_flux_df: pd.DataFrame
-    bin_edges: np.ndarray
+    bin_edges: dict[str, np.ndarray]
     smoothing: Optional[bool] = False
     nominal_run: pd.DataFrame = field(init=False)
     _beam_pt: pd.DataFrame = field(init=False)
@@ -98,8 +101,8 @@ class BeamFocusingSystematics:
         return flux_shifts_df
 
     def energy_to_bin_slice(self, elow, ehigh):
-        index1 = np.argmax(self.bin_edges >= elow)
-        index2 = np.argmax(self.bin_edges >= ehigh)
+        index1 = np.argmax(self.bin_edges["numu"] >= elow)
+        index2 = np.argmax(self.bin_edges["numu"] >= ehigh)
         return slice(index1, index2)
 
     def apply_systematic_selection(self):
@@ -200,7 +203,7 @@ class BeamFocusingSystematics:
         return total_covariance_matrix
 
     @cached_property
-    def total_correlation_matrix(self) -> pd.DataFrame:
+    def total_correlation_matrix(self) -> pd.DataFrame | NDArray[Any]:
         corr = calculate_correlation_matrix(
             self.total_covariance_matrix.loc["absolute"]
         )
