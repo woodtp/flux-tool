@@ -1,10 +1,11 @@
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 from uuid import uuid4
 
 import numpy as np
 import pandas as pd
-from numpy.typing import ArrayLike, NDArray
-from ROOT import TH1D, TH2D, TMatrixD  # type: ignore
+from numpy.typing import NDArray
+from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
+from ROOT import TH1D, TH2D, TMatrixD, TMatrixDSym  # type: ignore
 
 
 def get_bin_edges_from_dataframe(df: pd.DataFrame) -> np.ndarray:
@@ -32,15 +33,16 @@ def calculate_correlation_matrix(
 
 
 def convert_pandas_to_th1(
-    series: pd.Series,
+    series: pd.Series | pd.DataFrame,
     bin_edges: np.ndarray,
-    hist_title: Optional[str] = None,
+    hist_name: Optional[str] = None,
+    hist_title: str = "",
     uncerts: Optional[pd.Series] = None,
 ) -> TH1D:
-    if hist_title is None:
-        hist_title = str(uuid4())
+    if hist_name is None:
+        hist_name = str(uuid4())
 
-    th1 = TH1D(hist_title, "", len(bin_edges) - 1, bin_edges)
+    th1 = TH1D(hist_name, hist_title, len(bin_edges) - 1, bin_edges)
 
     if uncerts is None:
         for b, val in enumerate(series.values):
@@ -53,7 +55,7 @@ def convert_pandas_to_th1(
     return th1
 
 
-def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_title: str) -> TH2D:
+def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_name: str) -> TH2D:
     rows = dataframe.index
     columns = dataframe.columns
 
@@ -62,7 +64,7 @@ def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_title: str) -> TH2D:
     nbinsx = xbins.shape[0] - 1
     nbinsy = ybins.shape[0] - 1
 
-    th2 = TH2D(hist_title, "", nbinsx, xbins, nbinsy, ybins)
+    th2 = TH2D(hist_name, "", nbinsx, xbins, nbinsy, ybins)
 
     for ii, (_, row) in enumerate(dataframe.iterrows()):
         for jj, (_, col) in enumerate(row.items()):
@@ -79,6 +81,31 @@ def convert_pandas_to_th2(dataframe: pd.DataFrame, hist_title: str) -> TH2D:
     return th2
 
 
-def convert_pandas_to_tmatrix(matrix: pd.DataFrame) -> TMatrixD:
-    nrow, ncol = matrix.shape
-    return TMatrixD(nrow, ncol, matrix.values, "D")
+def convert_pandas_to_tmatrix(matrix: pd.DataFrame, is_sym=True) -> TMatrixD:
+    if is_sym:
+        return TMatrixDSym(matrix.shape[0], matrix)
+    return TMatrixD(*matrix.shape, matrix)
+
+
+def convert_groups_to_dict(
+    df_groups: SeriesGroupBy | DataFrameGroupBy,
+    bins: dict[str, NDArray],
+    hist_name_builder: Callable[..., str],
+    hist_title: str,
+    directory_builder: Callable[[str], str] = lambda _: "",
+    has_uncerts: bool = False,
+) -> dict[str, TH1D]:
+    out_dict: dict[str, TH1D] = {}
+
+    for idx, hist in df_groups:
+        nu = idx[-1]  # type: ignore
+        hist_name = hist_name_builder(*idx)  # type: ignore
+        if has_uncerts:
+            th1 = convert_pandas_to_th1(
+                hist.iloc[:, 0], bins[nu], hist_name, hist_title, hist.iloc[:, 1]
+            )
+        else:
+            th1 = convert_pandas_to_th1(hist, bins[nu], hist_name, hist_title)
+        out_dict[f"{directory_builder(idx[0])}/{hist_name}"] = th1  # type: ignore
+
+    return out_dict

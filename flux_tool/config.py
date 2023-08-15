@@ -1,4 +1,5 @@
 import tomllib
+from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
 
@@ -8,6 +9,7 @@ import numpy as np
 class AnalysisConfig:
     __slots__ = (
         "bin_edges",
+        "neutrinos",
         "nominal_samples",
         "output_file_name",
         "plots_path",
@@ -18,31 +20,43 @@ class AnalysisConfig:
     )
 
     def __init__(self, project_config: dict) -> None:
-        bin_edges = project_config.get("bin_edges")
-        if bin_edges is not None:
-            if isinstance(bin_edges, float):
-                self.bin_edges = np.arange(
-                    0.0, 20.0 + bin_edges, bin_edges, dtype=np.float64
-                )
+        self.neutrinos: list[str] = ["nue", "nuebar", "numu", "numubar"]
+
+        def_binning = {nu: np.linspace(0, 20, num=201) for nu in self.neutrinos}
+
+        binning = project_config.get("Binning", def_binning)
+
+        self.bin_edges = {}
+
+        for nu, bins in binning.items():
+            if isinstance(bins, int):
+                self.bin_edges[nu] = np.linspace(0, 20, num=bins+1)
+            elif isinstance(bins, Iterable):
+                self.bin_edges[nu] = np.asarray(bins)
             else:
-                self.bin_edges = np.asarray(bin_edges)
-        else:
-            self.bin_edges = np.linspace(0.0, 20.0, num=201)
+                # Falling back to default binning
+                self.bin_edges[nu] = def_binning[nu]
+
         self.sources_path = Path(project_config["sources"]).expanduser().resolve()
+
         self.results_path = Path(
             project_config.get(
                 "results",
                 self.sources_path.parent,
             )
         )
+
         self.plots_path = Path(
             project_config.get(
                 "plots",
                 self.sources_path.parent / "plots/",
             )
         )
+
         output_file = project_config["output_file_name"]
+
         self.products_file = f"{self.results_path}/{date.today()}_{output_file}"
+
         self.ppfx = project_config["PPFX"]
 
         nominal_samples = self.sources_path.glob("*0015*")
@@ -72,7 +86,9 @@ class AnalysisConfig:
         yield from keys
 
     def ignored_hist_filter(self, hist_name: str) -> bool:
-        return not any(x.lower() in hist_name.lower() for x in self.ignored_histogram_names)
+        return not any(
+            x.lower() in hist_name.lower() for x in self.ignored_histogram_names
+        )
 
     @staticmethod
     def parse_filename(name: str) -> tuple[str, int]:

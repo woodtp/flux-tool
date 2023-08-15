@@ -9,12 +9,10 @@ from ROOT import TH1D, TH2D, TAxis  # type: ignore
 from flux_tool import uncertainty
 from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
 from flux_tool.hadron_production_systematics import HadronProductionSystematics
-from flux_tool.helpers import (
-    calculate_correlation_matrix,
-    convert_pandas_to_th1,
-    convert_pandas_to_th2,
-    convert_pandas_to_tmatrix,
-)
+from flux_tool.helpers import (calculate_correlation_matrix,
+                               convert_groups_to_dict, convert_pandas_to_th1,
+                               convert_pandas_to_th2,
+                               convert_pandas_to_tmatrix)
 from flux_tool.principal_component_analysis import PCA
 
 
@@ -25,7 +23,7 @@ class FluxSystematicsAnalysis:
         "bin_edges",
         "th2_bins",
         "statistical_uncertainties",
-        "statistical_uncertainties_fraction",
+        # "statistical_uncertainties_fraction",
         "stat_uncert_matrix",
         "hadron_systematics",
         "horn_modes",
@@ -40,7 +38,7 @@ class FluxSystematicsAnalysis:
         self,
         nominal_flux_df: pd.DataFrame,
         ppfx_correction_df: pd.DataFrame,
-        bin_edges: np.ndarray,
+        bin_edges: dict[str, np.ndarray],
     ) -> None:
         self.nominal_flux_df = nominal_flux_df
         self.ppfx_correction_df = ppfx_correction_df
@@ -55,11 +53,11 @@ class FluxSystematicsAnalysis:
             self.ppfx_correction_df, self.nominal_flux_df
         )
 
-        self.statistical_uncertainties = uncertainty.extract_statistical_uncertainties(
+        statistical_uncertainties = uncertainty.extract_statistical_uncertainties(
             self.nominal_flux_df, self.hadron_systematics.ppfx_flux_weights
         )
 
-        self.statistical_uncertainties_fraction = (
+        statistical_uncertainties_fraction = (
             uncertainty.extract_statistical_uncertainties(
                 self.nominal_flux_df,
                 self.hadron_systematics.ppfx_flux_weights,
@@ -68,9 +66,15 @@ class FluxSystematicsAnalysis:
         )
 
         self.stat_uncert_matrix = pd.DataFrame(
-            np.diag(self.statistical_uncertainties) ** 2,
-            index=self.statistical_uncertainties.index,
-            columns=self.statistical_uncertainties.index,
+            np.diag(statistical_uncertainties) ** 2,
+            index=statistical_uncertainties.index,
+            columns=statistical_uncertainties.index,
+        )
+
+        self.statistical_uncertainties = pd.concat(
+            [statistical_uncertainties, statistical_uncertainties_fraction],
+            keys=["absolute", "fractional"],
+            names=["scale"] + statistical_uncertainties.index.names,
         )
 
         self.th2_bins = np.arange(
@@ -84,11 +88,11 @@ class FluxSystematicsAnalysis:
                 smoothing=True,
             )
 
-        total_cov = self.hadron_systematics.covariance_matrices.loc[ 
+        total_cov = self.hadron_systematics.covariance_matrices.loc[
             ("fractional", "total")
         ]
 
-        pca = PCA(total_cov, threshold=pca_threshold) # type: ignore
+        pca = PCA(total_cov, threshold=pca_threshold)  # type: ignore
 
         pca.fit()
 
@@ -115,8 +119,8 @@ class FluxSystematicsAnalysis:
 
     @property
     def xaxis_variable_bins(self) -> TAxis:
-        xbins = self.bin_edges
-        nbins = self.bin_edges.shape[0] - 1
+        xbins = self.bin_edges["numu"]
+        nbins = xbins.shape[0] - 1
 
         axis = TAxis(nbins, xbins)
         axis.SetTitle("E_{#nu} [GeV]")
@@ -147,7 +151,7 @@ class FluxSystematicsAnalysis:
     @property
     def matrix_binning_str(self) -> str:
         index = self.total_covariance_matrix.index
-        bins = self.bin_edges
+        bins = self.bin_edges["numu"]
 
         isRHC = lambda horn: 1 if horn == "rhc" else 0
 
@@ -194,17 +198,19 @@ class FluxSystematicsAnalysis:
         if mat is None:
             mat = self.total_covariance_matrix
 
-        bins = self.bin_edges
-        bins_selected = np.where((bins >= elow) & (bins <= ehigh))[0]
-        if bins_selected.shape == bins.shape:
-            bin_slice = slice(None)
-        else:
-            bin_slice = slice(bins_selected[0], bins_selected[-1])
+        bin_slices = {}
+        for nu, bins in self.bin_edges.items():
+            bins_selected = np.where((bins >= elow) & (bins <= ehigh))[0]
+            if bins_selected.shape == bins.shape:
+                bin_slice = slice(None)
+            else:
+                bin_slice = slice(bins_selected[0], bins_selected[-1])
+            bin_slices[nu] = bin_slice
 
         df_list = []
 
         for horn in self.horn_modes:
-            index_slice = pd.IndexSlice[horn, :, bin_slice]
+            index_slice = pd.IndexSlice[horn, :, bin_slices["numu"]]
 
             cov_mat = (
                 mat.loc[index_slice, index_slice]
@@ -212,18 +218,20 @@ class FluxSystematicsAnalysis:
                 .droplevel(level="horn_polarity", axis=1)
             )
 
-            nue_flux = self.flux_prediction.loc[(horn, "nue", bin_slice), "mean"].sum()
+            nue_flux = self.flux_prediction.loc[
+                (horn, "nue", bin_slices["nue"]), "mean"
+            ].sum()
 
             nuebar_flux = self.flux_prediction.loc[
-                (horn, "nuebar", bin_slice), "mean"
+                (horn, "nuebar", bin_slices["nuebar"]), "mean"
             ].sum()
 
             numu_flux = self.flux_prediction.loc[
-                (horn, "numu", bin_slice), "mean"
+                (horn, "numu", bin_slices["numu"]), "mean"
             ].sum()
 
             numubar_flux = self.flux_prediction.loc[
-                (horn, "numubar", bin_slice), "mean"
+                (horn, "numubar", bin_slices["numubar"]), "mean"
             ].sum()
 
             total_nue_flux = nue_flux + nuebar_flux
@@ -278,7 +286,7 @@ class FluxSystematicsAnalysis:
 
     @property
     def total_table(self) -> pd.DataFrame:
-        bin_combos = itertools.combinations(self.bin_edges, 2)
+        bin_combos = itertools.combinations(self.bin_edges["numu"], 2)
         df_list = {}
         for combo in bin_combos:
             df_list[combo] = self.total_uncertainties_in_range(*combo)
@@ -302,7 +310,7 @@ class FluxSystematicsAnalysis:
     ) -> dict[str, TH2D]:
         if isinstance(title_gen, str):
             return {
-                title_gen: convert_pandas_to_th2(matrix, hist_title=title_gen),
+                title_gen: convert_pandas_to_th2(matrix, hist_name=title_gen),
                 title_gen.replace("hcov", "cov").replace(
                     "hcorr", "corr"
                 ): convert_pandas_to_tmatrix(matrix),
@@ -313,9 +321,9 @@ class FluxSystematicsAnalysis:
         for category, hist in matrix.groupby(level=0):
             hist_title = title_gen(str(category))
             h = hist.droplevel(0)
-            export_dict[hist_title] = convert_pandas_to_th2(h, hist_title=hist_title)
-            mat_title = hist_title.replace("hcov", "cov").replace("hcorr", "corr")
-            export_dict[mat_title] = convert_pandas_to_tmatrix(hist)
+            export_dict[hist_title] = convert_pandas_to_th2(h, hist_name=hist_title)
+            # mat_title = hist_title.replace("hcov", "cov").replace("hcorr", "corr")
+            # export_dict[mat_title] = convert_pandas_to_tmatrix(hist)
 
         return export_dict
 
@@ -353,8 +361,8 @@ class FluxSystematicsAnalysis:
 
             th1 = convert_pandas_to_th1(
                 series=spectra["flux"],
-                bin_edges=self.bin_edges,
-                hist_title=directory + hist_name,
+                bin_edges=self.bin_edges[nu],
+                hist_name=directory + hist_name,
                 uncerts=spectra["stat_uncert"],
             )
             th1.SetTitle(";E_{#nu} [GeV]; #Phi_{#nu} [m^{-2} POT^{-1}]")
@@ -376,93 +384,106 @@ class FluxSystematicsAnalysis:
 
         return {"flux_universes": df}
 
-    def get_products(
-        self,
-    ) -> dict[
-        str,
-        tuple[np.ndarray, np.ndarray] | tuple[np.ndarray, np.ndarray, np.ndarray],
-    ]:
+    def get_products(self) -> dict[str, Any]:
         product_dict = {}
+
         product_dict["matrix_axis"] = self.matrix_taxis
+
         product_dict["xaxis_variable_bins"] = self.xaxis_variable_bins
+
         stat_mat_title = "hstatistical_uncertainty_matrix"
+
         stat_uncert_mat = convert_pandas_to_th2(
-            self.stat_uncert_matrix, hist_title=stat_mat_title
+            self.stat_uncert_matrix, hist_name=stat_mat_title
         )
+
         stat_uncert_tmatrix = convert_pandas_to_tmatrix(self.stat_uncert_matrix)
+
         product_dict[f"statistical_uncertainties/{stat_mat_title}"] = stat_uncert_mat
+
         product_dict[
             "statistical_uncertainties/statistical_uncertainty_matrix"
         ] = stat_uncert_tmatrix
 
         product_dict |= self._export_nominal_flux_df()
+
         product_dict |= self._export_flux_universes()
 
-        group_levels = ("horn_polarity", "neutrino_mode")
+        group_levels = ["horn_polarity", "neutrino_mode"]
 
-        for idx, hist in self.statistical_uncertainties_fraction.groupby(
-            level=group_levels
-        ):
-            horn, nu = idx  # type: ignore
-            hist_title = f"hstat_{horn}_{nu}"
-            stat_uncert = convert_pandas_to_th1(
-                series=hist, bin_edges=self.bin_edges, hist_title=hist_title
-            )
-            stat_uncert.SetTitle(";E_{#nu} [GeV];#sigma^{stat} / #Phi")
-            product_dict[f"statistical_uncertainties/{hist_title}"] = stat_uncert
-
-        for idx, hist in self.statistical_uncertainties.groupby(level=group_levels):
-            horn, nu = idx  # type: ignore
-            hist_title = f"hstat_{horn}_{nu}_abs"
-            stat_uncert = convert_pandas_to_th1(
-                series=hist, bin_edges=self.bin_edges, hist_title=hist_title
-            )
-            stat_uncert.SetTitle(";E_{#nu} [GeV];#sigma^{stat} [m^{-2} POT^{-1}]")
-            product_dict[f"statistical_uncertainties/{hist_title}"] = stat_uncert
-
-        for cat, series in self.hadron_systematics.fractional_uncertainties.items():
-            for idx, hist in series.groupby(level=group_levels):
-                horn, nu = idx  # type: ignore
-                hist_title = f"hfrac_hadron_{cat}_{horn}_{nu}"
-                frac_uncert = convert_pandas_to_th1(
-                    series=hist,
-                    bin_edges=self.bin_edges,
-                    hist_title=hist_title,
-                )
-                frac_uncert.SetTitle(";E_{#nu} [GeV];Fractional Uncertainty")
-                product_dict[
-                    f"fractional_uncertainties/hadron/{cat}/{hist_title}"
-                ] = frac_uncert
-
-        for idx, series in self.hadron_systematics.ppfx_corrected_flux.groupby(
-            level=("category", *list(group_levels))
-        ):
-            hist_title = f"ppfx_corrected_flux/{idx[0]}/h{idx[0]}_{idx[1]}_{idx[2]}"  # type: ignore
-            th1 = TH1D(hist_title, "", len(self.bin_edges) - 1, self.bin_edges)
-            for b, flux in series.iterrows():
-                th1.SetBinContent(b[-1], flux[0])  # type: ignore
-                th1.SetBinError(b[-1], flux[1])  # type: ignore
-            th1.SetTitle(";E_{#nu} [GeV]; #Phi_{#nu} [m^{-2} POT^{-1}]")
-            product_dict[hist_title] = th1
-
-        for idx, series in self.flux_prediction.groupby(level=group_levels):
-            hist_title = f"flux_prediction/hflux_{idx[0]}_{idx[1]}"  # type: ignore
-            th1 = TH1D(hist_title, "", len(self.bin_edges) - 1, self.bin_edges)
-            for b, flux in series.iterrows():
-                th1.SetBinContent(b[-1], flux[0])  # type: ignore
-                th1.SetBinError(b[-1], flux[1])  # type: ignore
-            th1.SetTitle(";E_{#nu} [GeV]; #Phi_{#nu} [m^{-2} POT^{-1}]")
-            product_dict[hist_title] = th1
-
-        flux_weights_grp = self.hadron_systematics.ppfx_flux_weights.groupby(
+        stat_uncrt_abs_groups = self.statistical_uncertainties.loc["absolute"].groupby(
             level=group_levels
         )
 
-        for (horn, nu), weights in flux_weights_grp:  # type: ignore
-            hist_title = f"hweights_{horn}_{nu}"
-            th1 = convert_pandas_to_th1(weights, self.bin_edges, hist_title)  # type: ignore
-            th1.SetTitle(";E_{#nu} [GeV]; #Phi_{#nu}^{PPFX} / #Phi_{#nu}^{nom}")
-            product_dict["ppfx_flux_weights/" + hist_title] = th1
+        stat_uncrt_frac_groups = self.statistical_uncertainties.loc[
+            "fractional"
+        ].groupby(level=group_levels)
+
+        had_uncrt_groups = self.hadron_systematics.fractional_uncertainties.groupby(
+            level=["category"] + group_levels
+        )
+
+        flux_weights_groups = self.hadron_systematics.ppfx_flux_weights.groupby(
+            level=group_levels
+        )
+
+        ppfx_corrected_flux_groups = (
+            self.hadron_systematics.ppfx_corrected_flux.groupby(
+                level=["category"] + group_levels
+            )
+        )
+
+        flux_prediction_groups = self.flux_prediction.groupby(level=group_levels)
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=stat_uncrt_abs_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda horn, nu: f"hstat_{horn}_{nu}_abs",
+            hist_title=";E_{#nu} [GeV];#sigma^{stat} [m^{-2} POT^{-1}]",
+            directory_builder=lambda _: "statistical_uncertainties",
+        )
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=stat_uncrt_frac_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda horn, nu: f"hstat_{horn}_{nu}",
+            hist_title=";E_{#nu} [GeV];#sigma^{stat} / #Phi",
+            directory_builder=lambda _: "statistical_uncertainties",
+        )
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=had_uncrt_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda cat, horn, nu: f"hfrac_hadron_{cat}_{horn}_{nu}",
+            hist_title=";E_{#nu} [GeV];Fractional Uncertainty",
+            directory_builder=lambda cat: f"fractional_uncertainties/hadron/{cat}",
+        )
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=flux_weights_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda horn, nu: f"hweights_{horn}_{nu}",
+            hist_title=";E_{#nu} [GeV]; #Phi_{#nu}^{PPFX} / #Phi_{#nu}^{nom}",
+            directory_builder=lambda _: "ppfx_flux_weights",
+        )
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=ppfx_corrected_flux_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda cat, horn, nu: f"h{cat}_{horn}_{nu}",
+            hist_title=";E_{#nu} [GeV]; #phi_{#nu} [m^{-2} POT^{-1}]",
+            directory_builder=lambda cat: f"ppfx_corrected_flux/{cat}",
+            has_uncerts=True,
+        )
+
+        product_dict |= convert_groups_to_dict(
+            df_groups=flux_prediction_groups,
+            bins=self.bin_edges,
+            hist_name_builder=lambda horn, nu: f"hflux_{horn}_{nu}",
+            hist_title=";E_{#nu} [GeV]; #phi_{#nu} [m^{-2} POT^{-1}]",
+            directory_builder=lambda _: "flux_prediction",
+            has_uncerts=True,
+        )
 
         matrix_objects = [
             (
@@ -518,8 +539,8 @@ class FluxSystematicsAnalysis:
                     hist_title = f"hfrac_beam_{run_id}_{horn}_{nu}"
                     th1 = convert_pandas_to_th1(
                         series=hist,
-                        bin_edges=self.bin_edges,
-                        hist_title=hist_title,
+                        bin_edges=self.bin_edges[nu],
+                        hist_name=hist_title,
                     )
                     th1.SetTitle(";E_{#nu} [GeV]; Fractional Uncertainty")
                     product_dict[
@@ -534,8 +555,8 @@ class FluxSystematicsAnalysis:
                     hist_title = f"hsyst_beam_{run_id}_{horn}_{nu}"
                     th1 = convert_pandas_to_th1(
                         series=hist,
-                        bin_edges=self.bin_edges,
-                        hist_title=hist_title,
+                        bin_edges=self.bin_edges[nu],
+                        hist_name=hist_title,
                     )
                     th1.SetTitle(";E_{#nu} [GeV]; #phi_{x} - #phi_{nom} / #phi_{nom}")
                     product_dict[f"beam_systematic_shifts/{hist_title}"] = th1
@@ -545,7 +566,7 @@ class FluxSystematicsAnalysis:
 
         product_dict["pca/hcov_pca"] = convert_pandas_to_th2(
             self.pca_covariance_matrix,
-            hist_title="hcov_pca",
+            hist_name="hcov_pca",
         )
         product_dict["pca/cov_pca"] = convert_pandas_to_tmatrix(
             self.pca_covariance_matrix,
@@ -554,7 +575,7 @@ class FluxSystematicsAnalysis:
         eigenvals = convert_pandas_to_th1(
             series=self.pca_eigen_values["eigenvalue"],
             bin_edges=np.arange(len(self.pca_eigen_values["eigenvalue"]), dtype=float),
-            hist_title="heigenvals",
+            hist_name="heigenvals",
         )
 
         eigenvals.SetTitle(";Principal Component;#lambda_{n}")
@@ -566,7 +587,7 @@ class FluxSystematicsAnalysis:
             bin_edges=np.arange(
                 len(self.pca_eigen_values["fractional_eigenvalue"]), dtype=float
             ),
-            hist_title="heigenvals_frac",
+            hist_name="heigenvals_frac",
         )
 
         frac_eigenvals.SetTitle(
@@ -580,7 +601,7 @@ class FluxSystematicsAnalysis:
             bin_edges=np.arange(
                 len(self.pca_eigen_values["cumulative_sum"]), dtype=float
             ),
-            hist_title="heigenvals_cumulative_sum",
+            hist_name="heigenvals_cumulative_sum",
         )
 
         cumulative_sum.SetTitle(
@@ -606,8 +627,8 @@ class FluxSystematicsAnalysis:
 
                 th1 = convert_pandas_to_th1(
                     series=pc,
-                    bin_edges=self.bin_edges,
-                    hist_title=hist_title,
+                    bin_edges=self.bin_edges[nu],
+                    hist_name=hist_title,
                 )
 
                 th1.SetTitle(axis_titles)

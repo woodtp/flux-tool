@@ -1,16 +1,12 @@
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable, Optional
-
-# import re
-
-from typing import NamedTuple
+from typing import Callable, NamedTuple, Optional
 
 import cppyy
 import numpy as np
 import pandas as pd
 import uproot
-from ROOT import TFile
+from ROOT import TFile  # type: ignore
 
 TH1D = cppyy.gbl.TH1D
 
@@ -86,7 +82,7 @@ def normalize_flux_to_pot(
     input_file: Path,
     horn: str,
     run_id: int,
-    bin_edges: Optional[np.ndarray] = None,
+    bin_edges: Optional[dict[str, np.ndarray]] = None,
     hist_name_filter: Optional[Callable[[str], bool]] = None,
 ) -> pd.DataFrame:
     """Normalizes flux histograms to POT and saves the data in a Pandas DataFrame.
@@ -102,7 +98,7 @@ def normalize_flux_to_pot(
         A Pandas DataFrame with columns for the flux, statistical uncertainty, bin number
     """
 
-    with uproot.open(input_file) as f:
+    with uproot.open(input_file) as f:  # type: ignore
         histkeys = f.keys(
             cycle=False,
             filter_classname="TH1D",
@@ -117,12 +113,13 @@ def normalize_flux_to_pot(
         for key in histkeys:
             _, hist_name = key.rsplit("/", 1)
 
-            parsed = parse_th1_name(hist_name)
+            parsed: HistInfo = parse_th1_name(hist_name)
 
             h = tfile.Get(key)
 
             if bin_edges is not None:
-                h = h.Rebin(len(bin_edges) - 1, hist_name, bin_edges)
+                bins = bin_edges[parsed.neutrino]
+                h = h.Rebin(len(bins) - 1, hist_name, bins)
 
             h.Scale(1.0 / pot)
 

@@ -147,11 +147,16 @@ class HadronProductionSystematics:
     def fractional_uncertainties(self) -> pd.DataFrame:
         cov = self.covariance_matrices.loc["fractional"]
 
-        hp_uncerts_dict = {
-            idx: pd.Series(np.sqrt(np.diag(x)), index=cov.columns)
-            for idx, x in cov.groupby(level="category")
-        }
-        return pd.DataFrame(hp_uncerts_dict)
+        diag_sqrt = lambda x: pd.Series(np.sqrt(np.diag(x)), index=cov.columns)
+
+        uncerts = (
+            cov.groupby("category")
+            .apply(diag_sqrt)
+            .stack(["horn_polarity", "neutrino_mode", "bin"])
+            .sort_index()
+        )
+
+        return uncerts
 
     @cached_property
     def flux_fit_results(self) -> dict[tuple[str, str, int], FluxUniverseFit]:
