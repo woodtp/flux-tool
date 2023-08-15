@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
-from ROOT import TH1D, TH2D, TAxis  # type: ignore
+from ROOT import TH2D, TAxis  # type: ignore
 
 from flux_tool import uncertainty
 from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
@@ -23,7 +23,6 @@ class FluxSystematicsAnalysis:
         "bin_edges",
         "th2_bins",
         "statistical_uncertainties",
-        # "statistical_uncertainties_fraction",
         "stat_uncert_matrix",
         "hadron_systematics",
         "horn_modes",
