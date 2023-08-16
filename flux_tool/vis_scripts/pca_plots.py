@@ -1,3 +1,4 @@
+from typing import Optional
 from functools import reduce
 from itertools import product
 from pathlib import Path
@@ -13,8 +14,11 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
 
 
 def plot_hadron_systs_and_pca_variances(
-    products_file: Path | str, output_dir: Path | str = "plots/pca"
+        products_file: Path | str, output_dir: Optional[Path] = None
 ) -> None:
+    if output_dir is not None:
+        output_dir.mkdir(exist_ok=True)
+
     plt.style.use(style)
 
     xaxis_lim = (0, 6)
@@ -193,11 +197,14 @@ def plot_hadron_systs_and_pca_variances(
                 x_pos=0.75,
             )
 
-            prefix = f"{horn}_{nu}_{version[actual]}"
+            if output_dir is not None:
+                prefix = f"{horn}_{nu}_{version[actual]}"
 
-            file_stem = f"{prefix}_hadron_systs_and_pca_variances"
+                file_stem = f"{prefix}_hadron_systs_and_pca_variances"
 
-            tex_caption = ""
-            tex_label = f"variance_{prefix}"
+                tex_caption = ""
+                tex_label = f"variance_{prefix}"
 
-            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+                save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+            plt.close(fig)

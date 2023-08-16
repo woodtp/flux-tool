@@ -13,7 +13,7 @@ from flux_tool.vis_scripts.style import ylabel_flux
 
 def save_figure(
     fig: Figure, fig_name: str, output_dir: Path | str, tex_caption: str, tex_label: str
-):
+) -> None:
     for ext in get_plot_extensions():
         file_name = f"{output_dir}/{fig_name}.{ext}"
         logging.info(f"Saving image {file_name}...")

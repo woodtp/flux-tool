@@ -9,6 +9,7 @@ from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
 # from flux_tool.visualizer import Visualizer
 from flux_tool.vis_scripts.pca_plots import plot_hadron_systs_and_pca_variances
+from flux_tool.vis_scripts.plot_all import plot_all
 
 try:
     import ROOT
@@ -61,12 +62,7 @@ def run(cfg_path: str):
 
     logging.info("Beginning plot generation...")
 
-    pca_plots_dir = cfg.plots_path / "pca"
-    pca_plots_dir.mkdir(exist_ok=True)
-
-    plot_hadron_systs_and_pca_variances(
-        exporter.products_file, output_dir=pca_plots_dir
-    )
+    plot_all(exporter.products_file, cfg.plots_path)
 
     logging.info("Done.")
 
