@@ -36,7 +36,8 @@ def get_plot_extensions() -> Generator[str, None, None]:
 def build_latex_figure(image_path: str, caption: str, label: str) -> str:
     lines: list[str] = [
         r"\begin{figure}",
-        r"    \centering" f"\\includegraphics[width=\\textwidth]{{{image_path}}}",
+        r"    \centering",
+        f"    \\includegraphics[width=\\textwidth]{{{image_path}}}",
         f"    \\caption{{{caption}}}",
         f"    \\label{{fig:{label}}}",
         r"\end{figure}",
