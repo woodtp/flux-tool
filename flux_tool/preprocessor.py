@@ -1,3 +1,4 @@
+import logging
 from concurrent.futures import ProcessPoolExecutor as Executor
 from functools import partial
 
@@ -11,6 +12,7 @@ class Preprocessor:
     __slots__ = ("nominal_flux_df", "ppfx_correction_df")
 
     def __init__(self, cfg: AnalysisConfig) -> None:
+        logging.info("Beginning preprocessing...")
         with Executor() as executor:
             res = executor.map(
                 partial(

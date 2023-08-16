@@ -59,12 +59,16 @@ def run(cfg_path: str):
     ) as f:
         f.write(analysis.matrix_binning_str)
 
+    logging.info("Beginning plot generation...")
+
     pca_plots_dir = cfg.plots_path / "pca"
     pca_plots_dir.mkdir(exist_ok=True)
 
     plot_hadron_systs_and_pca_variances(
         exporter.products_file, output_dir=pca_plots_dir
     )
+
+    logging.info("Done.")
 
     # TODO
     # vis = Visualizer(config=cfg, analysis=analysis)

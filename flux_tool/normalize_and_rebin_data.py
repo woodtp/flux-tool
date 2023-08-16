@@ -1,3 +1,4 @@
+import logging
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, NamedTuple, Optional
@@ -98,6 +99,8 @@ def normalize_flux_to_pot(
         A Pandas DataFrame with columns for the flux, statistical uncertainty, bin number
     """
 
+    logging.info(f"Opening {input_file}...")
+
     with uproot.open(input_file) as f:  # type: ignore
         histkeys = f.keys(
             cycle=False,
@@ -107,6 +110,8 @@ def normalize_flux_to_pot(
 
     with open_tfile(input_file) as tfile:
         pot = tfile.Get("hpot").GetMaximum()
+
+        logging.info(f"Normalizing to {pot} POT")
 
         hlist = []
 
@@ -118,6 +123,7 @@ def normalize_flux_to_pot(
             h = tfile.Get(key)
 
             if bin_edges is not None:
+                logging.info(f"Rebinning histogram {hist_name}")
                 bins = bin_edges[parsed.neutrino]
                 h = h.Rebin(len(bins) - 1, hist_name, bins)
 
@@ -125,6 +131,10 @@ def normalize_flux_to_pot(
 
             df = calculate_df(h, horn, run_id, parsed)
 
+            logging.info("Loading histogram into DataFrame")
+
             hlist.append(df)
+
+    logging.info(f"Closing {input_file}...")
 
     return pd.concat(hlist)

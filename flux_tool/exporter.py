@@ -15,10 +15,12 @@ class Exporter:
     __slots__ = ("nominal_samples", "products", "products_file")
 
     def __init__(self, cfg: AnalysisConfig, ana: FluxSystematicsAnalysis) -> None:
+        logging.info("Initializing export subroutine...")
         self.nominal_samples = cfg.nominal_samples
         self.products_file = Path(cfg.products_file)
         self.products = ana.get_products()
         self.init_products_file()
+        logging.info("Done.")
 
     def init_products_file(self) -> None:
         logging.info(f"Initializing output file:\n  {self.products_file}")
@@ -76,4 +78,5 @@ class Exporter:
 
                 d.WriteObject(product, dirs[-1])
 
+        logging.info("Export complete. Closing file...")
         product_file.Close()

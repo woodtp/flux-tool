@@ -1,4 +1,5 @@
 import itertools
+import logging
 from typing import Any, Callable, Optional
 
 import numpy as np
@@ -48,10 +49,16 @@ class FluxSystematicsAnalysis:
         self.horn_modes = list(self.nominal_flux_df["horn_polarity"].unique())
 
     def run(self, pca_threshold: float = 1) -> None:
+        logging.info("======= BEGINNING ANALYSIS =======")
+
+        logging.info(
+            "Calculating flux correction and hadron production systematic uncertainties..."
+        )
         self.hadron_systematics = HadronProductionSystematics(
             self.ppfx_correction_df, self.nominal_flux_df
         )
 
+        logging.info("Reading statistical uncertainties...")
         statistical_uncertainties = uncertainty.extract_statistical_uncertainties(
             self.nominal_flux_df, self.hadron_systematics.ppfx_flux_weights
         )
@@ -81,6 +88,7 @@ class FluxSystematicsAnalysis:
         )
 
         if self.beam_systematics_is_initialized:
+            logging.info("Calculating beamline focusing systematic uncertainties...")
             self.beam_systematics = BeamFocusingSystematics(
                 beam_flux_df=self.nominal_flux_df,
                 bin_edges=self.bin_edges,
@@ -93,6 +101,7 @@ class FluxSystematicsAnalysis:
 
         pca = PCA(total_cov, threshold=pca_threshold)  # type: ignore
 
+        logging.info("Performing PCA on hadron production covariance matrix...")
         pca.fit()
 
         self.pca_covariance_matrix = pd.DataFrame(
@@ -164,6 +173,7 @@ class FluxSystematicsAnalysis:
 
     @property
     def total_covariance_matrix(self) -> pd.DataFrame:
+        logging.info("Computing total covariance matrix...")
         hp_mat = self.rescale_matrix(self.pca_covariance_matrix)
         total_mat = hp_mat + self.stat_uncert_matrix
         if self.beam_systematics_is_initialized:
@@ -396,7 +406,9 @@ class FluxSystematicsAnalysis:
             self.stat_uncert_matrix, hist_name=stat_mat_title
         )
 
-        stat_uncert_tmatrix = convert_symmetric_ndarray_to_tmatrix(self.stat_uncert_matrix.values)
+        stat_uncert_tmatrix = convert_symmetric_ndarray_to_tmatrix(
+            self.stat_uncert_matrix.values
+        )
 
         product_dict[f"statistical_uncertainties/{stat_mat_title}"] = stat_uncert_mat
 
@@ -527,7 +539,8 @@ class FluxSystematicsAnalysis:
         if self.beam_systematics_is_initialized:
             matrix_objects += [
                 (
-                    self.beam_systematics.covariance_matrices.loc["fractional"], lambda x: f"covariance_matrices/beam/run_{x}/hcov_{x}",
+                    self.beam_systematics.covariance_matrices.loc["fractional"],
+                    lambda x: f"covariance_matrices/beam/run_{x}/hcov_{x}",
                 ),
                 (
                     self.beam_systematics.covariance_matrices.loc["absolute"],

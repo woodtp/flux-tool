@@ -1,7 +1,9 @@
+import logging
 import tomllib
 from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
+from typing import Self
 
 import numpy as np
 
@@ -30,7 +32,7 @@ class AnalysisConfig:
 
         for nu, bins in binning.items():
             if isinstance(bins, int):
-                self.bin_edges[nu] = np.linspace(0, 20, num=bins+1)
+                self.bin_edges[nu] = np.linspace(0, 20, num=bins + 1)
             elif isinstance(bins, Iterable):
                 self.bin_edges[nu] = np.asarray(bins)
             else:
@@ -103,12 +105,13 @@ class AnalysisConfig:
             yield f, horn, run_id
 
     @classmethod
-    def from_str(cls, config_str: str):
+    def from_str(cls, config_str: str) -> Self:
         config = tomllib.loads(config_str)
         return cls(config)
 
     @classmethod
-    def from_file(cls, config_file: str):
+    def from_file(cls, config_file: str) -> Self:
         with open(config_file, "rb") as file:
             config = tomllib.load(file)
+        logging.info(f"Read configuration from {config_file}")
         return cls(config)
