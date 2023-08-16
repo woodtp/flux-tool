@@ -193,16 +193,6 @@ def plot_hadron_systs_and_pca_variances(
                 x_pos=0.75,
             )
 
-            # axs[1].text(
-            #     0.75,
-            #     1.015,
-            #     r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
-            #     fontweight="bold",
-            #     # fontstyle="italic",
-            #     fontsize=28,
-            #     transform=axs[1].transAxes,
-            # )
-
             prefix = f"{horn}_{nu}_{version[actual]}"
 
             file_stem = f"{prefix}_hadron_systs_and_pca_variances"
