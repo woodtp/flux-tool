@@ -1,18 +1,19 @@
+from functools import reduce
 from itertools import product
 from pathlib import Path
-from functools import reduce
 
 import matplotlib.pyplot as plt
 import mplhep as hep
 import uproot
 
-from flux_tool.vis_scripts.helper import absolute_uncertainty
-from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
-                                         ppfx_labels, style, xlabel_enu)
+from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
+from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
+                                         place_header, ppfx_labels, style,
+                                         xlabel_enu)
 
 
 def plot_hadron_systs_and_pca_variances(
-    products_file: Path | str, output_dir: str = "plots/pca"
+    products_file: Path | str, output_dir: Path | str = "plots/pca"
 ) -> None:
     plt.style.use(style)
 
@@ -31,28 +32,28 @@ def plot_hadron_systs_and_pca_variances(
     )
 
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
-    with uproot.open(products_file) as f:
+    with uproot.open(products_file) as f:  # type: ignore
         for horn, nu, ver in all_versions_list:
-            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()
+            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
             total_uncert = f[
                 f"fractional_uncertainties/hadron/total/hfrac_hadron_total_{horn}_{nu}"
-            ].to_pyroot()
+            ].to_pyroot()  # type: ignore
 
             hadron_uncerts = {
                 key.split("/")[0]: h.to_pyroot()
                 for key, h in f["fractional_uncertainties/hadron/"].items(
-                    filter_name=f"*{horn}*{nu}", cycle=False
+                    filter_name=f"*{horn}*{nu}", cycle=False  # type: ignore
                 )
                 if "total" not in key and ver not in key and "mesinc/" not in key
             }
 
             pcs = [
-                f[f"pca/principal_components/hpc_{x}_{horn}_{nu}"].to_pyroot()
+                f[f"pca/principal_components/hpc_{x}_{horn}_{nu}"].to_pyroot()  # type: ignore
                 for x in range(npcs)
             ]
 
-            eigenvals, _ = f["pca/heigenvals_frac"].to_numpy()
+            eigenvals, _ = f["pca/heigenvals_frac"].to_numpy()  # type: ignore
 
             eigenvals = eigenvals[:npcs]
 
@@ -73,7 +74,9 @@ def plot_hadron_systs_and_pca_variances(
                 )
             }
 
-            total_variance_from_had_systs = reduce(lambda h1, h2: h1+h2, hadron_variances.values())
+            total_variance_from_had_systs = reduce(
+                lambda h1, h2: h1 + h2, hadron_variances.values()
+            )
 
             hadron_labels = [ppfx_labels[k] for k in sorted_hadron_variances]
 
@@ -89,7 +92,7 @@ def plot_hadron_systs_and_pca_variances(
             else:
                 actual = "daughter"
 
-            _, axs = plt.subplots(
+            fig, axs = plt.subplots(
                 1, 2, sharey=True, figsize=(26, 14), gridspec_kw={"wspace": 0.03}
             )
 
@@ -176,17 +179,35 @@ def plot_hadron_systs_and_pca_variances(
                 r"Fractional Variance $\mathrm{\left( \sigma / \phi \right)^2}$"
             )
 
-            place_header(axs[0], f"{header[horn]} {neutrino_labels[nu]}")
-            axs[1].text(
-                0.75,
-                1.015,
-                r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
-                fontweight="bold",
-                fontstyle="italic",
-                fontsize=28,
-                transform=axs[1].transAxes,
+            place_header(
+                axs[0],
+                f"{header[horn]} {neutrino_labels[nu]}",
+                x_pos=0.54,
             )
 
-            plt.savefig(
-                f"{output_dir}/{horn}_{nu}_{version[actual]}_hadron_systs_and_pca_variances.pdf"
+            icarus_preliminary(axs[0])
+
+            place_header(
+                axs[1],
+                r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
+                x_pos=0.75,
             )
+
+            # axs[1].text(
+            #     0.75,
+            #     1.015,
+            #     r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
+            #     fontweight="bold",
+            #     # fontstyle="italic",
+            #     fontsize=28,
+            #     transform=axs[1].transAxes,
+            # )
+
+            prefix = f"{horn}_{nu}_{version[actual]}"
+
+            file_stem = f"{prefix}_hadron_systs_and_pca_variances"
+
+            tex_caption = ""
+            tex_label = f"variance_{prefix}"
+
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore

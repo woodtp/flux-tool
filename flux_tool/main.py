@@ -7,8 +7,8 @@ from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
-
 # from flux_tool.visualizer import Visualizer
+from flux_tool.vis_scripts.pca_plots import plot_hadron_systs_and_pca_variances
 
 try:
     import ROOT
@@ -54,8 +54,17 @@ def run(cfg_path: str):
 
     exporter.export_ppfx_output()
 
-    with open(exporter.products_file.parent / "flux_covariance_binning_NuMI_GeV.txt", "w") as f:
+    with open(
+        exporter.products_file.parent / "flux_covariance_binning_NuMI_GeV.txt", "w"
+    ) as f:
         f.write(analysis.matrix_binning_str)
+
+    pca_plots_dir = cfg.plots_path / "pca"
+    pca_plots_dir.mkdir(exist_ok=True)
+
+    plot_hadron_systs_and_pca_variances(
+        exporter.products_file, output_dir=pca_plots_dir
+    )
 
     # TODO
     # vis = Visualizer(config=cfg, analysis=analysis)

@@ -134,26 +134,28 @@ def get_prop_cycler() -> Cycler:
     return prop_cycle
 
 
-def place_header(ax: Axes, header: str, fontsize=28) -> None:
+def place_header(ax: Axes, header: str, fontsize=28, x_pos=0.0, **kwargs) -> None:
     ax.text(
-        0.0,
+        x_pos,
         1.015,
         header,
         fontweight="bold",
-        fontstyle="italic",
+        # fontstyle="italic",
         fontsize=fontsize,
         transform=ax.transAxes,
+        **kwargs,
     )
 
-def icarus_preliminary(ax: Axes) -> None:
+def icarus_preliminary(ax: Axes, fontsize=28, x_pos=0.0, **kwargs) -> None:
     ax.text(
-        0.65,
+        x_pos,
         1.015,
-        "ICARUS Preliminary",
+        r"ICARUS Preliminary",
         fontweight="bold",
-        fontstyle="italic",
-        fontsize=28,
+        # fontstyle="italic",
+        fontsize=fontsize,
         transform=ax.transAxes,
+        **kwargs
     )
 
 

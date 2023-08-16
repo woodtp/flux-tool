@@ -1,14 +1,52 @@
-from typing import Optional
+import logging
+from pathlib import Path
+from typing import Generator, Optional
 
 from hist.hist import Hist
-from matplotlib.pyplot import Axes
-from numpy import log10, ndarray
+from matplotlib.pyplot import Axes, Figure
+from numpy import log10
+from numpy.typing import NDArray
 from ROOT import TH1D  # type: ignore
 
 from flux_tool.vis_scripts.style import ylabel_flux
 
 
-def get_hist_scale(h: ndarray | Hist) -> int:
+def save_figure(
+    fig: Figure, fig_name: str, output_dir: Path | str, tex_caption: str, tex_label: str
+):
+    for ext in get_plot_extensions():
+        file_name = f"{output_dir}/{fig_name}.{ext}"
+        logging.info(f"Saving image {file_name}...")
+        fig.savefig(file_name)
+
+    tex_figure = build_latex_figure(f"{fig_name}.pdf", tex_caption, tex_label)
+
+    tex_filename = f"{output_dir}/{fig_name}.tex"
+
+    logging.info(f"Writing figure to {tex_filename}...")
+
+    with open(tex_filename, "w") as texfile:
+        texfile.write(tex_figure)
+
+
+def get_plot_extensions() -> Generator[str, None, None]:
+    yield from ("png", "pdf")
+
+
+def build_latex_figure(image_path: str, caption: str, label: str) -> str:
+    lines: list[str] = [
+        r"\begin{figure}",
+        r"    \centering" f"\\includegraphics[width=\\textwidth]{{{image_path}}}",
+        f"    \\caption{{{caption}}}",
+        f"    \\label{{fig:{label}}}",
+        r"\end{figure}",
+    ]
+    fig: str = "\n".join(lines)
+
+    return fig
+
+
+def get_hist_scale(h: NDArray | Hist) -> int:
     if isinstance(h, Hist):
         hmax = h.counts().max()
     else:
@@ -22,7 +60,7 @@ def create_ylabel_with_scale(scale_factor: int) -> str:
     return prefix + f" $\\mathrm{{\\times 10^{{{scale_factor}}}}}$ " + units
 
 
-def scale_hist(histogram: ndarray, errors: Optional[ndarray] = None, scale_factor=None):
+def scale_hist(histogram: NDArray, errors: Optional[NDArray] = None, scale_factor=None):
     if scale_factor is None:
         scale_factor = -1 * get_hist_scale(histogram)
     scaled_histogram = (10**scale_factor) * histogram
