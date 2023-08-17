@@ -1,4 +1,5 @@
 import logging
+import sys
 import tomllib
 from collections.abc import Iterable
 from datetime import date
@@ -55,6 +56,8 @@ class AnalysisConfig:
             )
         )
 
+        self.verify_paths()
+
         output_file = project_config["output_file_name"]
 
         self.products_file = f"{self.results_path}/{date.today()}_{output_file}"
@@ -70,6 +73,25 @@ class AnalysisConfig:
                 self.nominal_samples |= {"rhc": s}
                 continue
             self.nominal_samples |= {"fhc": s}
+
+    def verify_paths(self) -> None:
+        for path in [self.sources_path, self.results_path, self.plots_path]:
+            if not path.exists():
+                opt = input(
+                    f"{self.results_path} does not exist. Create it? (y/n) "
+                ).lower()
+                if opt == "y":
+                    self.results_path.mkdir()
+                else:
+                    print("Directory not created. Exiting...")
+                    sys.exit()
+
+        if not any(self.sources_path.iterdir()):
+            msg = (
+                f'No files found in input directory: "{self.sources_path}"'
+                "\nExiting..."
+            )
+            raise FileNotFoundError(msg)
 
     @property
     def ignored_histogram_names(self):

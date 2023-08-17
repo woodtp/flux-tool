@@ -1,7 +1,7 @@
-from typing import Optional
 from functools import reduce
 from itertools import product
 from pathlib import Path
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -14,7 +14,7 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
 
 
 def plot_hadron_systs_and_pca_variances(
-        products_file: Path | str, output_dir: Optional[Path] = None
+    products_file: Path | str, output_dir: Optional[Path] = None
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)

@@ -19,19 +19,21 @@ from flux_tool.principal_component_analysis import PCA
 
 class FluxSystematicsAnalysis:
     __slots__ = (
-        "nominal_flux_df",
-        "ppfx_correction_df",
+        "beam_systematics",
+        "beam_systematics_is_initialized",
         "bin_edges",
-        "th2_bins",
-        "statistical_uncertainties",
-        "stat_uncert_matrix",
+        "flux_prediction",
         "hadron_systematics",
         "horn_modes",
-        "beam_systematics",
-        "pca_covariance_matrix",
+        "nominal_flux_df",
         "pca_eigen_values",
         "pca_components",
-        "beam_systematics_is_initialized",
+        "pca_covariance_matrix",
+        "ppfx_correction_df",
+        "statistical_uncertainties",
+        "stat_uncert_matrix",
+        "th2_bins",
+        "total_covariance_matrix",
     )
 
     def __init__(
@@ -71,8 +73,10 @@ class FluxSystematicsAnalysis:
             )
         )
 
+        diag = np.power(np.diag(statistical_uncertainties), 2)
+
         self.stat_uncert_matrix = pd.DataFrame(
-            np.diag(statistical_uncertainties) ** 2,
+            diag,
             index=statistical_uncertainties.index,
             columns=statistical_uncertainties.index,
         )
@@ -110,6 +114,10 @@ class FluxSystematicsAnalysis:
 
         self.pca_eigen_values = pca.eigenvalues_df
         self.pca_components = pca.principal_component_df
+
+        self.total_covariance_matrix = self._total_covariance_matrix
+
+        self.flux_prediction = self._flux_prediction
 
     def rescale_matrix(self, matrix, fractional=True):
         """Helper function to convert between absolute and fractional scales of the covariance matrices.
@@ -161,18 +169,17 @@ class FluxSystematicsAnalysis:
         index = self.total_covariance_matrix.index
         bins = self.bin_edges["numu"]
 
-        isRHC = lambda horn: 1 if horn == "rhc" else 0
-
         nu_pdg = {"nue": 12, "nuebar": -12, "numu": 14, "numubar": -14}
 
         lines = ["variables: isRHC NeutrinoCode Enu Enu"]
         for horn, nu, b in index:
-            lines.append(f"{isRHC(horn)} {nu_pdg[nu]} {bins[b-1]} {bins[b]}")
+            is_RHC = 1 if horn == "rhc" else 0
+            lines.append(f"{is_RHC} {nu_pdg[nu]} {bins[b-1]} {bins[b]}")
 
         return "\n".join(lines)
 
     @property
-    def total_covariance_matrix(self) -> pd.DataFrame:
+    def _total_covariance_matrix(self) -> pd.DataFrame:
         logging.info("Computing total covariance matrix...")
         hp_mat = self.rescale_matrix(self.pca_covariance_matrix)
         total_mat = hp_mat + self.stat_uncert_matrix
@@ -190,7 +197,7 @@ class FluxSystematicsAnalysis:
         return corr_mat
 
     @property
-    def flux_prediction(self) -> pd.DataFrame:
+    def _flux_prediction(self) -> pd.DataFrame:
         total_sigma = pd.Series(
             np.sqrt(np.diag(self.total_covariance_matrix)),
             index=self.total_covariance_matrix.index,
@@ -352,7 +359,7 @@ class FluxSystematicsAnalysis:
 
             directory = "beam_samples/"
             if run == 15:
-                directory += f"run_15_NOMINAL/"
+                directory += "run_15_NOMINAL/"
             else:
                 directory += f"run_{run}/"
 

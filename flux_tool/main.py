@@ -1,43 +1,41 @@
 import logging
 import sys
 from argparse import ArgumentParser
-from pathlib import Path
+from importlib.util import find_spec
 
 from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
-# from flux_tool.visualizer import Visualizer
-from flux_tool.vis_scripts.pca_plots import plot_hadron_systs_and_pca_variances
 from flux_tool.vis_scripts.plot_all import plot_all
 
-try:
-    import ROOT
-except ImportError:
-    raise ImportError(
-        "PyROOT is not installed. Please install ROOT before using this package."
-    )
+
+def check_for_ROOT() -> None:
+    try:
+        spec = find_spec("ROOT")
+    except ValueError:
+        """For some reason ROOT doesn't have a defined __spec__,
+        and a ValueError exception is thrown.
+        But it's still importable so we can catch the exception here.
+        """
+        pass
+    else:
+        if not spec:
+            msg = (
+                "PyROOT is not installed."
+                "Please install ROOT before using this package."
+            )
+            raise ImportError(msg)
 
 
 def run(cfg_path: str):
-    if not Path(cfg_path).exists():
-        raise FileNotFoundError(f"The configuration file {cfg_path} was not found...")
-    cfg = AnalysisConfig.from_file(cfg_path)
+    check_for_ROOT()
 
-    if not cfg.sources_path.exists():
-        raise FileNotFoundError(
-            f"The directory {cfg.sources_path} does not exist. Exiting..."
-        )
-    elif not any(cfg.sources_path.iterdir()):
-        raise FileNotFoundError(f"No files found in {cfg.sources_path}. Exiting...")
-
-    if not cfg.results_path.exists():
-        opt = input(f"{cfg.results_path} does not exist. Create it? (y/n) ").lower()
-        if opt == "y":
-            cfg.results_path.mkdir()
-        else:
-            print("Results directory not created. Exiting...")
-            sys.exit()
+    try:
+        cfg = AnalysisConfig.from_file(cfg_path)
+    except FileNotFoundError:
+        print(f'The configuration file "{cfg_path}" was not found. Exiting...')
+        sys.exit()
 
     preprocessor = Preprocessor(cfg=cfg)
 

@@ -11,6 +11,40 @@ from ROOT import TH1D  # type: ignore
 from flux_tool.vis_scripts.style import ylabel_flux
 
 
+# @cache
+# def _load_spectra(products_file: Path | str):
+#     with uproot.open(products_file) as f:  # type: ignore
+#         spectra = {
+#             "fhc_pot": f["ppfx_output/fhc/hpot"].values().max(),  # type: ignore
+#             "rhc_pot": f["ppfx_output/rhc/hpot"].values().max(),  # type: ignore
+#             "nominal_spectra": {
+#                 key: h
+#                 for key, h in f["ppfx_output"].items(
+#                     cycle=False, filter_name="*/nom/hnom*"  # type: ignore
+#                 )
+#             },
+#             "parent_spectra": {
+#                 key: h
+#                 for key, h in f["ppfx_output"].items(
+#                     cycle=False, filter_name="*/nom/parent/*"  # type: ignore
+#                 )
+#             },
+#             "ppfx_correction": {
+#                 key: h for key, h in f["ppfx_corrected_flux/total"].items(cycle=False)  # type: ignore
+#             },
+#             "universes": {
+#                 key: h
+#                 for key, h in f["ppfx_output"].items(
+#                     filter_name="*/*_total/*", cycle=False # type: ignore
+#                 )
+#             },
+#             "flux_weights": {
+#                 key: h for key, h in f["ppfx_flux_weights"].items(cycle=False)  # type: ignore
+#             },
+#         }
+#     return spectra
+
+
 def save_figure(
     fig: Figure, fig_name: str, output_dir: Path | str, tex_caption: str, tex_label: str
 ) -> None:

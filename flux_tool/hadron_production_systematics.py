@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import numpy as np
 import pandas as pd
-from ROOT import TF1, TH1D
+from ROOT import TF1, TH1D # type: ignore
 
 
 @dataclass(repr=False)

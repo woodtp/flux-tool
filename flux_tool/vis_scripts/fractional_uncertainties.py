@@ -8,13 +8,14 @@ import numpy as np
 import uproot
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
+from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, ppfx_labels, style,
                                          xlabel_enu)
 
 
 def plot_hadron_fractional_uncertainties(
-    products_file: Path | str, output_dir: Optional[Path] = None
+    reader: SpectraReader, output_dir: Optional[Path] = None
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
@@ -27,6 +28,8 @@ def plot_hadron_fractional_uncertainties(
     header = {"fhc": "Forward Horn Current", "rhc": "Reverse Horn Current"}
 
     all_versions = list(product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]))
+
+    flux = reader.ppfx_correction
 
     with uproot.open(products_file) as f:  # type: ignore
         for horn, nu in all_versions:

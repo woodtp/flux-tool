@@ -1,20 +1,46 @@
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 
 from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_hadron_fractional_uncertainties,
     plot_hadron_fractional_uncertainties_mesinc_breakout,
     plot_hadron_fractional_uncertainties_mesinc_only)
+from flux_tool.vis_scripts.parent_spectra import plot_parents
 from flux_tool.vis_scripts.pca_plots import plot_hadron_systs_and_pca_variances
+from flux_tool.vis_scripts.ppfx_universes import plot_ppfx_universes
+from flux_tool.vis_scripts.spectra_reader import SpectraReader
+from flux_tool.vis_scripts.style import style
 
 
 def plot_all(products_file: Path | str, output_dir: Path):
-    plot_hadron_fractional_uncertainties(
-        products_file, output_dir / "hadron_uncertainties"
+    plt.style.use(style)
+
+    reader = SpectraReader(products_file)
+
+    jobs = (
+        (plot_parents, (reader, output_dir / "flux_spectra/parents")),
+        (
+            plot_parents,
+            (reader, output_dir / "flux_spectra/parents", True),
+        ),
+        (plot_ppfx_universes, (reader, output_dir / "flux_spectra/universes")),
+        (
+            plot_hadron_fractional_uncertainties,
+            (reader, output_dir / "hadron_uncertainties"),
+        ),
+        (
+            plot_hadron_fractional_uncertainties_mesinc_breakout,
+            (reader, output_dir / "hadron_uncertainties/meson_breakout"),
+        ),
+        (
+            plot_hadron_fractional_uncertainties_mesinc_only,
+            (reader, output_dir / "hadron_uncertainties/meson_only"),
+        ),
+        (plot_hadron_systs_and_pca_variances, (reader, output_dir / "pca")),
     )
-    plot_hadron_fractional_uncertainties_mesinc_breakout(
-        products_file, output_dir / "hadron_uncertainties/meson_breakout"
-    )
-    plot_hadron_fractional_uncertainties_mesinc_only(
-        products_file, output_dir / "hadron_uncertainties/meson_only"
-    )
-    plot_hadron_systs_and_pca_variances(products_file, output_dir / "pca")
+
+    with ProcessPoolExecutor() as exe:
+        for fn, args in jobs:
+            exe.submit(fn, *args)  # type: ignore
