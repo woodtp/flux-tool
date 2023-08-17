@@ -25,7 +25,6 @@ flux-tool = "flux_tool"
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.0.2"
-pyright = "^1.1.316"
 black = "^23.3.0"
 isort = "^5.12.0"
 jupyterlab-code-formatter = "^2.2.1"
