@@ -1,3 +1,4 @@
+import sys
 from itertools import product
 from pathlib import Path
 from typing import Optional
@@ -29,102 +30,99 @@ def plot_hadron_fractional_uncertainties(
 
     all_versions = list(product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]))
 
-    flux = reader.ppfx_correction
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
 
-    with uproot.open(products_file) as f:  # type: ignore
-        for horn, nu in all_versions:
-            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
+    for horn, nu in all_versions:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            total_uncert = f[
-                f"fractional_uncertainties/hadron/total/hfrac_hadron_total_{horn}_{nu}"
-            ].to_pyroot()  # type: ignore
+        total_uncert = hadron_uncertainties[
+            f"total/hfrac_hadron_total_{horn}_{nu}"
+        ].to_pyroot()  # type: ignore
 
-            hadron_uncerts = {
-                key.split("/")[0]: h.to_pyroot()
-                for key, h in f["fractional_uncertainties/hadron/"].items(
-                    filter_name=f"*{horn}*{nu}", cycle=False  # type: ignore
-                )
-                if "total" not in key
-                and "projectile" not in key
-                and "daughter" not in key
-                and "qel" not in key.lower()
-            }
+        hadron_uncerts = {
+            k.split("/")[0]: v.to_pyroot()
+            for k, v in hadron_uncertainties.items()
+            if k.endswith(nu)
+            and horn in k
+            and "total" not in k
+            and "projectile" not in k
+            and "daughter" not in k
+        }
 
-            absolute_uncertainties = {
-                k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
-            }
+        absolute_uncertainties = {
+            k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
+        }
 
-            sorted_hadron_uncerts = {
-                k: v
-                for k, v in sorted(
-                    hadron_uncerts.items(),
-                    key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
-                    reverse=True,
-                )
-            }
-
-            hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
-
-            n_spectra = len(hadron_uncerts)
-
-            half = n_spectra // 2
-
-            ls = (half) * ["-"] + (n_spectra - half) * ["--"]
-
-            fig, ax = plt.subplots(figsize=(14, 14))
-
-            hep.histplot(
-                ax=ax,
-                H=total_uncert,
-                yerr=False,
-                histtype="step",
-                linestyle="-",
-                lw=3,
-                color="k",
-                label="Total",
+        sorted_hadron_uncerts = {
+            k: v
+            for k, v in sorted(
+                hadron_uncerts.items(),
+                key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
+                reverse=True,
             )
+        }
 
-            hep.histplot(
-                ax=ax,
-                H=list(sorted_hadron_uncerts.values()),
-                yerr=False,
-                histtype="step",
-                edges=False,
-                lw=3,
-                ls=ls,
-                label=hadron_labels,
-            )
+        hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
 
-            ax.set_yticks(np.arange(0, 0.22, step=0.02))
+        n_spectra = len(hadron_uncerts)
 
-            ax.set_xlim(*xaxis_lim)
-            ax.set_ylim(*yaxis_lim)
-            ax.legend(loc="upper center", fontsize=24, ncol=2)
-            ax.set_xlabel(xlabel_enu)
+        half = n_spectra // 2
 
-            ax.set_ylabel(
-                r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$"
-            )
+        ls = (half) * ["-"] + (n_spectra - half) * ["--"]
 
-            ax.tick_params(labelsize=28)
+        fig, ax = plt.subplots(figsize=(14, 14))
 
-            place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+        hep.histplot(
+            ax=ax,
+            H=total_uncert,
+            yerr=False,
+            histtype="step",
+            linestyle="-",
+            lw=3,
+            color="k",
+            label="Total",
+        )
 
-            icarus_preliminary(ax)
+        hep.histplot(
+            ax=ax,
+            H=list(sorted_hadron_uncerts.values()),
+            yerr=False,
+            histtype="step",
+            edges=False,
+            lw=3,
+            ls=ls,
+            label=hadron_labels,
+        )
 
-            if output_dir is not None:
-                prefix = f"{horn}_{nu}"
-                fig_name = f"{prefix}_hadron_fractional_uncertainties"
-                tex_label = fig_name
-                tex_caption = ""
+        ax.set_yticks(np.arange(0, 0.22, step=0.02))
 
-                save_figure(fig, fig_name, output_dir, tex_caption, tex_label)
+        ax.set_xlim(*xaxis_lim)
+        ax.set_ylim(*yaxis_lim)
+        ax.legend(loc="upper center", fontsize=24, ncol=2)
+        ax.set_xlabel(xlabel_enu)
 
-            plt.close(fig)
+        ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
+
+        ax.tick_params(labelsize=28)
+
+        place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+
+        icarus_preliminary(ax)
+
+        if output_dir is not None:
+            prefix = f"{horn}_{nu}"
+            fig_name = f"{prefix}_hadron_fractional_uncertainties"
+            tex_label = fig_name
+            tex_caption = ""
+
+            save_figure(fig, fig_name, output_dir, tex_caption, tex_label)
+
+        plt.close(fig)
 
 
 def plot_hadron_fractional_uncertainties_mesinc_breakout(
-    products_file: Path | str, output_dir: Optional[Path] = None
+    reader: SpectraReader, output_dir: Optional[Path] = None
 ) -> None:
     plt.style.use(style)
 
@@ -139,109 +137,109 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
         ["daughter", "projectile"],
     )
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
-    with uproot.open(products_file) as f:  # type: ignore
-        for horn, nu, ver in all_versions_list:
-            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            total_uncert = f[
-                f"fractional_uncertainties/hadron/total/hfrac_hadron_total_{horn}_{nu}"
-            ].to_pyroot()  # type: ignore
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
 
-            hadron_uncerts = {
-                key.split("/")[0]: h.to_pyroot()
-                for key, h in f["fractional_uncertainties/hadron/"].items(
-                    filter_name=f"*{horn}*{nu}", cycle=False  # type: ignore
-                )
-                if "total" not in key
-                and ver not in key
-                and "mesinc/" not in key
-                and "qel" not in key.lower()
-            }
+    for horn, nu, ver in all_versions_list:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            if ver == "daughter":
-                actual = "projectile"
-            else:
-                actual = "daughter"
+        total_uncert = hadron_uncertainties[
+            f"total/hfrac_hadron_total_{horn}_{nu}"
+        ].to_pyroot()  # type: ignore
 
-            absolute_uncertainties = {
-                k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
-            }
+        hadron_uncerts = {
+            k.split("/")[0]: v.to_pyroot()
+            for k, v in hadron_uncertainties.items()
+            if k.endswith(nu)
+            and horn in k
+            and "total" not in k
+            and ver not in k
+            and "mesinc/" not in k
+        }
 
-            sorted_hadron_uncerts = {
-                k: v
-                for k, v in sorted(
-                    hadron_uncerts.items(),
-                    key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
-                    reverse=True,
-                )
-            }
+        if ver == "daughter":
+            actual = "projectile"
+        else:
+            actual = "daughter"
 
-            hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
+        absolute_uncertainties = {
+            k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
+        }
 
-            n_spectra = len(hadron_uncerts)
-
-            half = n_spectra // 2
-
-            ls = (half) * ["-"] + (n_spectra - half) * ["--"]
-
-            fig, ax = plt.subplots(figsize=(14, 14))
-
-            hep.histplot(
-                ax=ax,
-                H=total_uncert,
-                yerr=False,
-                histtype="step",
-                linestyle="-",
-                lw=3,
-                color="k",
-                label="Total",
+        sorted_hadron_uncerts = {
+            k: v
+            for k, v in sorted(
+                hadron_uncerts.items(),
+                key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
+                reverse=True,
             )
+        }
 
-            hep.histplot(
-                ax=ax,
-                H=list(sorted_hadron_uncerts.values()),
-                yerr=False,
-                histtype="step",
-                edges=False,
-                lw=3,
-                ls=ls,
-                label=hadron_labels,
-            )
+        hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
 
-            ax.set_yticks(np.arange(0, 0.22, step=0.02))
+        n_spectra = len(hadron_uncerts)
 
-            ax.set_xlim(*xaxis_lim)
-            ax.set_ylim(*yaxis_lim)
-            ax.legend(loc="upper center", fontsize=24, ncol=2)
-            ax.set_xlabel(xlabel_enu)
+        half = n_spectra // 2
 
-            ax.set_ylabel(
-                r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$"
-            )
+        ls = (half) * ["-"] + (n_spectra - half) * ["--"]
 
-            ax.tick_params(labelsize=28)
+        fig, ax = plt.subplots(figsize=(14, 14))
 
-            icarus_preliminary(ax)
-            place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+        hep.histplot(
+            ax=ax,
+            H=total_uncert,
+            yerr=False,
+            histtype="step",
+            linestyle="-",
+            lw=3,
+            color="k",
+            label="Total",
+        )
 
-            if output_dir is not None:
-                ver = version[actual]
+        hep.histplot(
+            ax=ax,
+            H=list(sorted_hadron_uncerts.values()),
+            yerr=False,
+            histtype="step",
+            edges=False,
+            lw=3,
+            ls=ls,
+            label=hadron_labels,
+        )
 
-                out_dir = output_dir / ver
-                if not out_dir.exists():
-                    out_dir.mkdir(parents=True)
-                prefix = f"{horn}_{nu}"
-                fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
-                tex_label = fig_name
-                tex_caption = ""
+        ax.set_yticks(np.arange(0, 0.22, step=0.02))
 
-                save_figure(fig, fig_name, out_dir, tex_caption, tex_label)  # type: ignore
+        ax.set_xlim(*xaxis_lim)
+        ax.set_ylim(*yaxis_lim)
+        ax.legend(loc="upper center", fontsize=24, ncol=2)
+        ax.set_xlabel(xlabel_enu)
 
-            plt.close(fig)
+        ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
+
+        ax.tick_params(labelsize=28)
+
+        icarus_preliminary(ax)
+        place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+
+        if output_dir is not None:
+            ver = version[actual]
+
+            out_dir = output_dir / ver
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            prefix = f"{horn}_{nu}"
+            fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
+            tex_label = fig_name
+            tex_caption = ""
+
+            save_figure(fig, fig_name, out_dir, tex_caption, tex_label)  # type: ignore
+
+        plt.close(fig)
 
 
 def plot_hadron_fractional_uncertainties_mesinc_only(
-    products_file: Path | str, output_dir: Optional[Path] = None
+        reader: SpectraReader, output_dir: Optional[Path] = None
 ) -> None:
     plt.style.use(style)
 
@@ -256,85 +254,90 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
         ["daughter", "projectile"],
     )
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
-    with uproot.open(products_file) as f:  # type: ignore
-        for horn, nu, ver in all_versions_list:
-            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            hadron_uncerts = {
-                key.split("/")[0]: h.to_pyroot()
-                for key, h in f["fractional_uncertainties/hadron/"].items(
-                    filter_name=f"*{horn}*{nu}", cycle=False  # type: ignore
-                )
-                if "total" not in key and ver not in key and "mesinc" in key
-            }
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
 
-            if ver == "daughter":
-                actual = "projectile"
-            else:
-                actual = "daughter"
+    for horn, nu, ver in all_versions_list:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            absolute_uncertainties = {
-                k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
-            }
+        hadron_uncerts = {
+            k.split("/")[0]: v.to_pyroot()
+            for k, v in hadron_uncertainties.items()
+            if k.endswith(nu)
+            and horn in k
+            and "total" not in k
+            and ver not in k
+            and "mesinc" in k
+        }
 
-            sorted_hadron_uncerts = {
-                k: v
-                for k, v in sorted(
-                    hadron_uncerts.items(),
-                    key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
-                    reverse=True,
-                )
-            }
+        if ver == "daughter":
+            actual = "projectile"
+        else:
+            actual = "daughter"
 
-            hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
+        absolute_uncertainties = {
+            k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
+        }
 
-            n_spectra = len(hadron_uncerts)
-
-            half = n_spectra // 2
-
-            ls = (half) * ["-"] + (n_spectra - half) * ["--"]
-
-            fig, ax = plt.subplots(figsize=(14, 14))
-
-            hep.histplot(
-                ax=ax,
-                H=list(sorted_hadron_uncerts.values()),
-                yerr=False,
-                histtype="step",
-                edges=False,
-                lw=3,
-                ls=ls,
-                label=hadron_labels,
+        sorted_hadron_uncerts = {
+            k: v
+            for k, v in sorted(
+                hadron_uncerts.items(),
+                key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
+                reverse=True,
             )
+        }
 
-            ax.set_yticks(np.arange(0, 0.22, step=0.02))
+        hadron_labels = [ppfx_labels[k] for k in sorted_hadron_uncerts]
 
-            ax.set_xlim(*xaxis_lim)
-            ax.set_ylim(*yaxis_lim)
-            ax.legend(loc="upper center", fontsize=24, ncol=2)
-            ax.set_xlabel(xlabel_enu)
+        n_spectra = len(hadron_uncerts)
 
-            ax.set_ylabel(
-                r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$"
-            )
+        half = n_spectra // 2
 
-            ax.tick_params(labelsize=28)
+        ls = (half) * ["-"] + (n_spectra - half) * ["--"]
 
-            place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+        fig, ax = plt.subplots(figsize=(14, 14))
 
-            icarus_preliminary(ax)
+        hep.histplot(
+            ax=ax,
+            H=list(sorted_hadron_uncerts.values()),
+            yerr=False,
+            histtype="step",
+            edges=False,
+            lw=3,
+            ls=ls,
+            label=hadron_labels,
+        )
 
-            if output_dir is not None:
-                ver = version[actual]
+        ax.set_yticks(np.arange(0, 0.22, step=0.02))
 
-                out_dir = output_dir / ver
-                if not out_dir.exists():
-                    out_dir.mkdir(parents=True)
-                prefix = f"{horn}_{nu}"
-                fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
-                tex_label = fig_name
-                tex_caption = ""
+        ax.set_xlim(*xaxis_lim)
+        ax.set_ylim(*yaxis_lim)
+        ax.legend(loc="upper center", fontsize=24, ncol=2)
+        ax.set_xlabel(xlabel_enu)
 
-                save_figure(fig, fig_name, out_dir, tex_caption, tex_label)  # type: ignore
+        ax.set_ylabel(
+            r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$"
+        )
 
-            plt.close(fig)
+        ax.tick_params(labelsize=28)
+
+        place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
+
+        icarus_preliminary(ax)
+
+        if output_dir is not None:
+            ver = version[actual]
+
+            out_dir = output_dir / ver
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            prefix = f"{horn}_{nu}"
+            fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
+            tex_label = fig_name
+            tex_caption = ""
+
+            save_figure(fig, fig_name, out_dir, tex_caption, tex_label)  # type: ignore
+
+        plt.close(fig)

@@ -1,4 +1,3 @@
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -18,6 +17,8 @@ def plot_all(products_file: Path | str, output_dir: Path):
     plt.style.use(style)
 
     reader = SpectraReader(products_file)
+
+    reader.load_cache()
 
     jobs = (
         (plot_parents, (reader, output_dir / "flux_spectra/parents")),
@@ -41,6 +42,5 @@ def plot_all(products_file: Path | str, output_dir: Path):
         (plot_hadron_systs_and_pca_variances, (reader, output_dir / "pca")),
     )
 
-    with ProcessPoolExecutor() as exe:
-        for fn, args in jobs:
-            exe.submit(fn, *args)  # type: ignore
+    for fn, args in jobs:
+        fn(*args) # type: ignore

@@ -8,13 +8,14 @@ import mplhep as hep
 import uproot
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
+from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, ppfx_labels, style,
                                          xlabel_enu)
 
 
 def plot_hadron_systs_and_pca_variances(
-    products_file: Path | str, output_dir: Optional[Path] = None
+    reader: SpectraReader, output_dir: Optional[Path] = None
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
@@ -36,175 +37,181 @@ def plot_hadron_systs_and_pca_variances(
     )
 
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
-    with uproot.open(products_file) as f:  # type: ignore
-        for horn, nu, ver in all_versions_list:
-            flux = f[f"ppfx_corrected_flux/total/htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            total_uncert = f[
-                f"fractional_uncertainties/hadron/total/hfrac_hadron_total_{horn}_{nu}"
-            ].to_pyroot()  # type: ignore
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
+    principal_components = reader.principal_components
 
-            hadron_uncerts = {
-                key.split("/")[0]: h.to_pyroot()
-                for key, h in f["fractional_uncertainties/hadron/"].items(
-                    filter_name=f"*{horn}*{nu}", cycle=False  # type: ignore
-                )
-                if "total" not in key and ver not in key and "mesinc/" not in key
-            }
+    for horn, nu, ver in all_versions_list:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
-            pcs = [
-                f[f"pca/principal_components/hpc_{x}_{horn}_{nu}"].to_pyroot()  # type: ignore
-                for x in range(npcs)
-            ]
+        total_uncert = hadron_uncertainties[
+            f"total/hfrac_hadron_total_{horn}_{nu}"
+        ].to_pyroot()  # type: ignore
 
-            eigenvals, _ = f["pca/heigenvals_frac"].to_numpy()  # type: ignore
+        hadron_uncerts = {
+            key.split("/")[0]: h.to_pyroot()
+            for key, h in hadron_uncertainties.items()
+            if key.endswith(nu)
+            and horn in key
+            and "total" not in key
+            and ver not in key
+            and "mesinc/" not in key
+        }
 
-            eigenvals = eigenvals[:npcs]
+        pcs = [
+            principal_components[f"hpc_{x}_{horn}_{nu}"].to_pyroot()  # type: ignore
+            for x in range(npcs)
+        ]
 
-            absolute_uncertainties = {
-                k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
-            }
+        eigenvals, _ = reader["pca/heigenvals_frac"].to_numpy()  # type: ignore
 
-            total_variance = total_uncert * total_uncert
+        eigenvals = eigenvals[:npcs]
 
-            hadron_variances = {k: h * h for k, h in hadron_uncerts.items()}
+        absolute_uncertainties = {
+            k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
+        }
 
-            sorted_hadron_variances = {
-                k: v
-                for k, v in sorted(
-                    hadron_variances.items(),
-                    key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
-                    reverse=True,
-                )
-            }
+        total_variance = total_uncert * total_uncert
 
-            total_variance_from_had_systs = reduce(
-                lambda h1, h2: h1 + h2, hadron_variances.values()
+        hadron_variances = {k: h * h for k, h in hadron_uncerts.items()}
+
+        sorted_hadron_variances = {
+            k: v
+            for k, v in sorted(
+                hadron_variances.items(),
+                key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
+                reverse=True,
             )
+        }
 
-            hadron_labels = [ppfx_labels[k] for k in sorted_hadron_variances]
+        total_variance_from_had_systs = reduce(
+            lambda h1, h2: h1 + h2, hadron_variances.values()
+        )
 
-            pcs_variances = [pc * pc for pc in pcs]
+        hadron_labels = [ppfx_labels[k] for k in sorted_hadron_variances]
 
-            pc_labels = [
-                f"$\\mathrm{{\\lambda_{i}}}$ ({var*100:0.1f}%)"
-                for i, var in enumerate(eigenvals)
-            ]
+        pcs_variances = [pc * pc for pc in pcs]
 
-            if ver == "daughter":
-                actual = "projectile"
-            else:
-                actual = "daughter"
+        pc_labels = [
+            f"$\\mathrm{{\\lambda_{i}}}$ ({var*100:0.1f}%)"
+            for i, var in enumerate(eigenvals)
+        ]
 
-            fig, axs = plt.subplots(
-                1, 2, sharey=True, figsize=(26, 14), gridspec_kw={"wspace": 0.03}
-            )
+        if ver == "daughter":
+            actual = "projectile"
+        else:
+            actual = "daughter"
 
-            hep.histplot(
-                ax=axs[0],
-                H=total_variance_from_had_systs,
-                yerr=False,
-                histtype="fill",
-                linestyle="--",
-                lw=3,
-                color="w",
-                edgecolor="gray",
-                hatch="//",
-                zorder=0,
-                label=r"Total of all channels",
-            )
+        fig, axs = plt.subplots(
+            1, 2, sharey=True, figsize=(26, 14), gridspec_kw={"wspace": 0.03}
+        )
 
-            hep.histplot(
-                ax=axs[0],
-                H=total_variance,
-                yerr=False,
-                histtype="step",
-                linestyle="--",
-                lw=3,
-                color="k",
-                label="PPFX Total",
-                zorder=10,
-            )
+        hep.histplot(
+            ax=axs[0],
+            H=total_variance_from_had_systs,
+            yerr=False,
+            histtype="fill",
+            linestyle="--",
+            lw=3,
+            color="w",
+            edgecolor="gray",
+            hatch="//",
+            zorder=0,
+            label=r"Total of all channels",
+        )
 
-            hep.histplot(
-                ax=axs[0],
-                H=list(sorted_hadron_variances.values())[:npcs],
-                yerr=False,
-                histtype="fill",
-                stack=True,
-                edges=False,
-                lw=3,
-                label=hadron_labels[:npcs],
-            )
+        hep.histplot(
+            ax=axs[0],
+            H=total_variance,
+            yerr=False,
+            histtype="step",
+            linestyle="--",
+            lw=3,
+            color="k",
+            label="PPFX Total",
+            zorder=10,
+        )
 
-            hep.histplot(
-                ax=axs[1],
-                H=total_variance,
-                yerr=False,
-                histtype="fill",
-                linestyle="--",
-                lw=3,
-                color="w",
-                edgecolor="k",
-                hatch="//",
-                zorder=0,
-                label=r"PPFX Total",
-            )
+        hep.histplot(
+            ax=axs[0],
+            H=list(sorted_hadron_variances.values())[:npcs],
+            yerr=False,
+            histtype="fill",
+            stack=True,
+            edges=False,
+            lw=3,
+            label=hadron_labels[:npcs],
+        )
 
-            hep.histplot(
-                ax=axs[1],
-                H=total_variance,
-                yerr=False,
-                histtype="step",
-                linestyle="--",
-                lw=3,
-                color="k",
-                zorder=10,
-            )
+        hep.histplot(
+            ax=axs[1],
+            H=total_variance,
+            yerr=False,
+            histtype="fill",
+            linestyle="--",
+            lw=3,
+            color="w",
+            edgecolor="k",
+            hatch="//",
+            zorder=0,
+            label=r"PPFX Total",
+        )
 
-            hep.histplot(
-                ax=axs[1],
-                H=pcs_variances,
-                yerr=False,
-                histtype="fill",
-                stack=True,
-                edges=False,
-                lw=3,
-                label=pc_labels,
-            )
+        hep.histplot(
+            ax=axs[1],
+            H=total_variance,
+            yerr=False,
+            histtype="step",
+            linestyle="--",
+            lw=3,
+            color="k",
+            zorder=10,
+        )
 
-            for ax in axs:
-                ax.set_xlim(*xaxis_lim)
-                ax.set_ylim(*yaxis_lim)
-                ax.legend(loc="upper center", fontsize=24, ncol=2)
-                ax.set_xlabel(xlabel_enu)
+        hep.histplot(
+            ax=axs[1],
+            H=pcs_variances,
+            yerr=False,
+            histtype="fill",
+            stack=True,
+            edges=False,
+            lw=3,
+            label=pc_labels,
+        )
 
-            axs[0].set_ylabel(
-                r"Fractional Variance $\mathrm{\left( \sigma / \phi \right)^2}$"
-            )
+        for ax in axs:
+            ax.set_xlim(*xaxis_lim)
+            ax.set_ylim(*yaxis_lim)
+            ax.legend(loc="upper center", fontsize=24, ncol=2)
+            ax.set_xlabel(xlabel_enu)
 
-            place_header(
-                axs[0],
-                f"{header[horn]} {neutrino_labels[nu]}",
-                x_pos=0.54,
-            )
+        axs[0].set_ylabel(
+            r"Fractional Variance $\mathrm{\left( \sigma / \phi \right)^2}$"
+        )
 
-            icarus_preliminary(axs[0])
+        place_header(
+            axs[0],
+            f"{header[horn]} {neutrino_labels[nu]}",
+            x_pos=0.54,
+        )
 
-            place_header(
-                axs[1],
-                r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
-                x_pos=0.75,
-            )
+        icarus_preliminary(axs[0])
 
-            if output_dir is not None:
-                prefix = f"{horn}_{nu}_{version[actual]}"
+        place_header(
+            axs[1],
+            r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
+            x_pos=0.75,
+        )
 
-                file_stem = f"{prefix}_hadron_systs_and_pca_variances"
+        if output_dir is not None:
+            prefix = f"{horn}_{nu}_{version[actual]}"
 
-                tex_caption = ""
-                tex_label = f"variance_{prefix}"
+            file_stem = f"{prefix}_hadron_systs_and_pca_variances"
 
-                save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            tex_caption = ""
+            tex_label = f"variance_{prefix}"
 
-            plt.close(fig)
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+        plt.close(fig)

@@ -6,24 +6,21 @@ import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
 
-from flux_tool.vis_scripts.helper import (_load_spectra,
-                                          create_ylabel_with_scale,
-                                          save_figure)
+from flux_tool.vis_scripts.helper import create_ylabel_with_scale, save_figure
+from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
                                          xlabel_enu)
 
 
-def plot_ppfx_universes(products_file: Path | str, output_dir: Optional[Path] = None):
+def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None):
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
 
-    spectra = _load_spectra(products_file)
+    nominal_flux = reader.nominal_spectra
+    universes = reader.universes
+    ppfx_correction = reader.ppfx_correction
 
-    nominal_flux = spectra["nominal_spectra"]
-    universes = spectra["universes"]
-    ppfx_correction = spectra["ppfx_correction"]
-
-    pot = {"fhc": spectra["fhc_pot"], "rhc": spectra["rhc_pot"]}
+    pot = reader.pot
     horns = ["fhc", "rhc"]
     nus = ["nue", "nuebar", "numu", "numubar"]
 

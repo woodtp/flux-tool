@@ -8,6 +8,18 @@ from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
 from flux_tool.vis_scripts.plot_all import plot_all
+from time import time
+
+
+
+def timer(fn):
+    def wrap():
+        start = time()
+        fn()
+        end = time()
+        logging.info(f"Finished in {end-start:0.2f} s")
+    return wrap
+
 
 
 def check_for_ROOT() -> None:
@@ -28,15 +40,16 @@ def check_for_ROOT() -> None:
             raise ImportError(msg)
 
 
-def run(cfg_path: str):
-    check_for_ROOT()
-
+def load_config(cfg_path: str) -> AnalysisConfig:
     try:
         cfg = AnalysisConfig.from_file(cfg_path)
     except FileNotFoundError:
         print(f'The configuration file "{cfg_path}" was not found. Exiting...')
         sys.exit()
+    return cfg
 
+
+def run_analysis(cfg: AnalysisConfig):
     preprocessor = Preprocessor(cfg=cfg)
 
     analysis = FluxSystematicsAnalysis(
@@ -58,22 +71,12 @@ def run(cfg_path: str):
     ) as f:
         f.write(analysis.matrix_binning_str)
 
-    logging.info("Beginning plot generation...")
-
-    plot_all(exporter.products_file, cfg.plots_path)
-
-    logging.info("Done.")
-
-    # TODO
-    # vis = Visualizer(config=cfg, analysis=analysis)
-    #
-    # vis.save_plots()
+    return exporter.products_file
 
 
+@timer
 def main():
-    from time import time
-
-    start = time()
+    check_for_ROOT()
 
     parser = ArgumentParser(
         prog="flux_uncertainties",
@@ -83,20 +86,32 @@ def main():
         "-c", "--config", help="specify the path to a toml configuration file"
     )
 
+    parser.add_argument(
+        "--plot",
+        help="Specify path to an existing ROOT file for which to produce plots",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-    cfg = args.config
+    cfg_str = args.config
 
-    if cfg is None:
+    if cfg_str is None:
         parser.print_help()
         sys.exit(1)
 
-    run(args.config)
-    end = time()
+    cfg = load_config(cfg_str)
 
-    print(f"Finished in {end-start:0.2f} s")
+    plot = args.plot
+
+    products_file = plot if plot is not None else run_analysis(cfg)
+
+    logging.info("=============== MAKING PLOTS ===============")
+
+    plot_all(products_file, cfg.plots_path)
+
+    logging.info("Done.")
 
 
 if __name__ == "__main__":
