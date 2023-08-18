@@ -1,4 +1,5 @@
 import logging
+from itertools import product
 from pathlib import Path
 from typing import Generator, Optional
 
@@ -9,6 +10,10 @@ from numpy.typing import NDArray
 from ROOT import TH1D  # type: ignore
 
 from flux_tool.vis_scripts.style import ylabel_flux
+
+
+def get_all_neutrinos() -> Generator[tuple[str, str], None, None]:
+    yield from product(["fhc", "rhc"], ["nue", "nuebar", "numu", "numubar"])
 
 
 def save_figure(
