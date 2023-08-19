@@ -2,14 +2,13 @@ import logging
 import sys
 from argparse import ArgumentParser
 from importlib.util import find_spec
+from time import time
 
 from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
-from flux_tool.vis_scripts.plot_all import plot_all
-from time import time
-
+from flux_tool.vis_scripts.plot_all import plot_all, compress_directory
 
 
 def timer(fn):
@@ -18,8 +17,8 @@ def timer(fn):
         fn()
         end = time()
         logging.info(f"Finished in {end-start:0.2f} s")
-    return wrap
 
+    return wrap
 
 
 def check_for_ROOT() -> None:
@@ -110,6 +109,8 @@ def main():
     logging.info("=============== MAKING PLOTS ===============")
 
     plot_all(products_file, cfg.plots_path)
+
+    compress_directory(cfg.plots_path)
 
     logging.info("Done.")
 

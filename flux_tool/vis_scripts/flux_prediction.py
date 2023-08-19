@@ -12,13 +12,17 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, xlabel_enu)
 
 
-def plot_flux_prediction(reader: SpectraReader, output_dir: Optional[Path] = None):
+def plot_flux_prediction(
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim: tuple[int, int] = (0,20),
+):
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
 
     flux_prediction = reader.flux_prediction
 
-    for horn, nu in product(("fhc", "rhc"), ("nue", "numu")):
+    for horn, nu in product(reader.horn_current, ["nue", "numu"]):
         flux = [
             flux_prediction[f"hflux_{horn}_{nu}"].to_pyroot(),
             flux_prediction[f"hflux_{horn}_{nu}bar"].to_pyroot(),
@@ -43,7 +47,6 @@ def plot_flux_prediction(reader: SpectraReader, output_dir: Optional[Path] = Non
         for h in nominal:
             h.Scale(scale_factor)
 
-
         ylabel = create_ylabel_with_scale(int(power))
 
         prediction_label = (
@@ -64,7 +67,7 @@ def plot_flux_prediction(reader: SpectraReader, output_dir: Optional[Path] = Non
             f"Uncorrected {neutrino_labels[f'{nu}bar']} Flux",
         ]
 
-        fig, ax = plt.subplots(layout="constrained")
+        fig, ax = plt.subplots(layout="constrained") #, figsize=(12,12))
 
         marker = "o" if nu == "numu" else "s"
 
@@ -96,15 +99,17 @@ def plot_flux_prediction(reader: SpectraReader, output_dir: Optional[Path] = Non
             lw=2,
         )
 
-        icarus_preliminary(ax, fontsize=24)  # type: ignore
+        # icarus_preliminary(ax, fontsize=24)  # type: ignore
         place_header(ax, f"NuMI Simulation ({horn.upper()})", x_pos=0.58, fontsize=24)  # type: ignore
 
         ax.set_ylabel(ylabel)  # type: ignore
         ax.set_xlabel(xlabel_enu)  # type: ignore
-        ax.legend(loc="best", fontsize=28)  # type: ignore
-        ax.set_xlim(0, 6)  # type: ignore
+        ax.legend(loc="best", fontsize=20)  # type: ignore
+
+        ax.set_xlim(*xlim)  # type: ignore
 
         if output_dir is not None:
+            # prefix = f"{horn}_{nu}"
             prefix = f"{horn}_{nu}"
             file_stem = f"{prefix}_flux_prediction"
             tex_caption = ""

@@ -1,7 +1,10 @@
+import logging
+import tarfile
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from flux_tool.vis_scripts.covariance import plot_hadron_correlation_matrices
 from flux_tool.vis_scripts.flux_prediction import plot_flux_prediction
 from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_hadron_fractional_uncertainties,
@@ -14,7 +17,11 @@ from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import style
 
 
-def plot_all(products_file: Path | str, output_dir: Path):
+def plot_all(
+    products_file: Path | str,
+    output_dir: Path,
+    xlim: tuple[int, int] = (0, 20),
+):
     plt.style.use(style)
 
     reader = SpectraReader(products_file)
@@ -22,7 +29,10 @@ def plot_all(products_file: Path | str, output_dir: Path):
     # reader.load_cache()
 
     jobs = (
-        (plot_flux_prediction, (reader, output_dir / "flux_spectra/flux_prediction")),
+        (
+            plot_flux_prediction,
+            (reader, output_dir / "flux_spectra/flux_prediction", xlim),
+        ),
         # (plot_parents, (reader, output_dir / "flux_spectra/parents")),
         # (
         #     plot_parents,
@@ -31,7 +41,11 @@ def plot_all(products_file: Path | str, output_dir: Path):
         # (plot_ppfx_universes, (reader, output_dir / "flux_spectra/universes")),
         # (
         #     plot_hadron_fractional_uncertainties,
-        #     (reader, output_dir / "hadron_uncertainties"),
+        #     (reader, output_dir / "hadron_uncertainties", (0, 10), (0, 0.15)),
+        # ),
+        # (
+        #     plot_hadron_correlation_matrices,
+        #     (reader, output_dir / "covariance_matrices/hadron"),
         # ),
         # (
         #     plot_hadron_fractional_uncertainties_mesinc_breakout,
@@ -46,3 +60,10 @@ def plot_all(products_file: Path | str, output_dir: Path):
 
     for fn, args in jobs:
         fn(*args)  # type: ignore
+
+
+def compress_directory(directory: Path):
+    logging.info(f"Compressing {directory}...")
+    with tarfile.open("plots.tar.xz", "w:xz") as tar:
+        for d in directory.iterdir():
+            tar.add(d, arcname=d.stem)

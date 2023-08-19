@@ -77,11 +77,9 @@ class AnalysisConfig:
     def verify_paths(self) -> None:
         for path in [self.sources_path, self.results_path, self.plots_path]:
             if not path.exists():
-                opt = input(
-                    f"{self.results_path} does not exist. Create it? (y/n) "
-                ).lower()
+                opt = input(f"{path} does not exist. Create it? (y/n) ").lower()
                 if opt == "y":
-                    self.results_path.mkdir()
+                    path.mkdir()
                 else:
                     print("Directory not created. Exiting...")
                     sys.exit()

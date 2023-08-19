@@ -1,5 +1,4 @@
 import logging
-
 import subprocess
 from pathlib import Path
 
@@ -7,8 +6,8 @@ import uproot
 from pandas import DataFrame
 from ROOT import TFile
 
-from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.config import AnalysisConfig
+from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 
 
 class Exporter:
@@ -27,25 +26,29 @@ class Exporter:
 
         self.products_file.unlink(missing_ok=True)
 
-        cmd1 = f"rootmkdir -p {self.products_file}:ppfx_output/fhc".split()
-        cmd2 = f"rootmkdir -p {self.products_file}:ppfx_output/rhc".split()
-
-        subprocess.run(cmd1)
-        subprocess.run(cmd2)
+        if self.nominal_samples["fhc"] is not None:
+            cmd1 = f"rootmkdir -p {self.products_file}:ppfx_output/fhc".split()
+            subprocess.run(cmd1)
+        if self.nominal_samples["rhc"] is not None:
+            cmd2 = f"rootmkdir -p {self.products_file}:ppfx_output/rhc".split()
+            subprocess.run(cmd2)
 
     def export_ppfx_output(self) -> None:
-
         fhc_file = self.nominal_samples["fhc"]
         rhc_file = self.nominal_samples["rhc"]
         if fhc_file is None and rhc_file is None:
             print("Please provide at least one of FHC/RHC file path!")
             return
         if fhc_file is not None:
-            logging.info(f"Copying PPFX output from {fhc_file.name} to {self.products_file.name}")
+            logging.info(
+                f"Copying PPFX output from {fhc_file.name} to {self.products_file.name}"
+            )
             cmd1 = f"rootcp -r {fhc_file} {self.products_file}:ppfx_output/fhc/".split()
             subprocess.run(cmd1)
         if rhc_file is not None:
-            logging.info(f"Copying PPFX output from {rhc_file.name} to {self.products_file.name}")
+            logging.info(
+                f"Copying PPFX output from {rhc_file.name} to {self.products_file.name}"
+            )
             cmd2 = f"rootcp -r {rhc_file} {self.products_file}:ppfx_output/rhc/".split()
             subprocess.run(cmd2)
 

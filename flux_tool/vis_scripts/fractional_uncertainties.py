@@ -14,26 +14,23 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, ppfx_labels, style,
                                          xlabel_enu)
 
-
 def plot_hadron_fractional_uncertainties(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim: tuple[int | float, int | float] = (0, 20),
+    ylim: tuple[int | float, int | float] = (0, 0.2),
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
 
     plt.style.use(style)
 
-    xaxis_lim = (0, 6)
-    yaxis_lim = (0, 0.2)
-
     header = {"fhc": "Forward Horn Current", "rhc": "Reverse Horn Current"}
-
-    all_versions = list(product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]))
 
     ppfx_correction = reader.ppfx_correction
     hadron_uncertainties = reader.hadron_uncertainties
 
-    for horn, nu in all_versions:
+    for horn, nu in reader.horns_and_nus:
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()  # type: ignore
 
         total_uncert = hadron_uncertainties[
@@ -97,8 +94,8 @@ def plot_hadron_fractional_uncertainties(
 
         ax.set_yticks(np.arange(0, 0.22, step=0.02))
 
-        ax.set_xlim(*xaxis_lim)
-        ax.set_ylim(*yaxis_lim)
+        ax.set_xlim(*xlim)
+        ax.set_ylim(*ylim)
         ax.legend(loc="upper center", fontsize=24, ncol=2)
         ax.set_xlabel(xlabel_enu)
 
@@ -108,7 +105,7 @@ def plot_hadron_fractional_uncertainties(
 
         place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", x_pos=0.55)
 
-        icarus_preliminary(ax)
+        # icarus_preliminary(ax)
 
         if output_dir is not None:
             prefix = f"{horn}_{nu}"
@@ -239,7 +236,7 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
 
 
 def plot_hadron_fractional_uncertainties_mesinc_only(
-        reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader, output_dir: Optional[Path] = None
 ) -> None:
     plt.style.use(style)
 
@@ -317,9 +314,7 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
         ax.legend(loc="upper center", fontsize=24, ncol=2)
         ax.set_xlabel(xlabel_enu)
 
-        ax.set_ylabel(
-            r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$"
-        )
+        ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
 
         ax.tick_params(labelsize=28)
 

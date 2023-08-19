@@ -452,14 +452,6 @@ class FluxSystematicsAnalysis:
 
         flux_prediction_groups = self.flux_prediction.groupby(level=levels)
 
-        beam_uncrt_groups = self.beam_systematics.fractional_uncertainties.groupby(
-            level=three_levels
-        )
-
-        beam_shift_groups = self.beam_systematics.beam_systematic_shifts.loc[
-            "fractional"
-        ].groupby(level=three_levels)
-
         product_dict |= convert_groups_to_dict(
             df_groups=stat_uncrt_abs_groups,
             bins=self.bin_edges,
@@ -510,22 +502,6 @@ class FluxSystematicsAnalysis:
             has_uncerts=True,
         )
 
-        product_dict |= convert_groups_to_dict(
-            df_groups=beam_uncrt_groups,
-            bins=self.bin_edges,
-            hist_name_builder=lambda cat, horn, nu: f"hfrac_beam_{cat}_{horn}_{nu}",
-            hist_title=";E_{#nu} [GeV];Fractional Uncertainty",
-            directory_builder=lambda cat: f"fractional_uncertainties/beam/{cat}",
-        )
-
-        product_dict |= convert_groups_to_dict(
-            df_groups=beam_shift_groups,
-            bins=self.bin_edges,
-            hist_name_builder=lambda cat, horn, nu: f"hsyst_beam_{cat}_{horn}_{nu}",
-            hist_title=";E_{#nu} [GeV]; #phi_{x} - #phi_{nom} / #phi_{nom}",
-            directory_builder=lambda _: "beam_systematic_shifts",
-        )
-
         matrix_objects = [
             (
                 self.hadron_systematics.covariance_matrices.loc["fractional"],
@@ -544,6 +520,30 @@ class FluxSystematicsAnalysis:
         ]
 
         if self.beam_systematics_is_initialized:
+            beam_uncrt_groups = self.beam_systematics.fractional_uncertainties.groupby(
+                level=three_levels
+            )
+
+            beam_shift_groups = self.beam_systematics.beam_systematic_shifts.loc[
+                "fractional"
+            ].groupby(level=three_levels)
+
+            product_dict |= convert_groups_to_dict(
+                df_groups=beam_uncrt_groups,
+                bins=self.bin_edges,
+                hist_name_builder=lambda cat, horn, nu: f"hfrac_beam_{cat}_{horn}_{nu}",
+                hist_title=";E_{#nu} [GeV];Fractional Uncertainty",
+                directory_builder=lambda cat: f"fractional_uncertainties/beam/{cat}",
+            )
+
+            product_dict |= convert_groups_to_dict(
+                df_groups=beam_shift_groups,
+                bins=self.bin_edges,
+                hist_name_builder=lambda cat, horn, nu: f"hsyst_beam_{cat}_{horn}_{nu}",
+                hist_title=";E_{#nu} [GeV]; #phi_{x} - #phi_{nom} / #phi_{nom}",
+                directory_builder=lambda _: "beam_systematic_shifts",
+            )
+
             matrix_objects += [
                 (
                     self.beam_systematics.covariance_matrices.loc["fractional"],
