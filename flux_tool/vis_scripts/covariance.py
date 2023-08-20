@@ -1,25 +1,24 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import matplotlib.pyplot as plt
-# from matplotlib.figure import Figure
 import seaborn as sns
 
 from flux_tool.vis_scripts.helper import save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
+from flux_tool.vis_scripts.style import neutrino_labels
 
 
-def plot_hadron_correlation_matrices(
-    reader: SpectraReader, output_dir: Optional[Path] = None
-):
-    if output_dir is not None:
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-    horn_currents = reader.horn_current
-    matrices = reader.hadron_correlation_matrices
-
+def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
     for key, mat in matrices.items():
+        if "total" not in key:
+            continue
         fig, ax = plt.subplots(layout="constrained")
+
+        # h = mat.to_pyroot()
+        # print(
+        #     [h.GetXaxis().GetBinLabel(i) for i in range(1, h.GetXaxis().GetNbins() + 1)]
+        # )
 
         # print(key)
         heatmap_kwargs = {
@@ -36,10 +35,10 @@ def plot_hadron_correlation_matrices(
 
         sns.heatmap(m, **heatmap_kwargs)
 
-        ax.invert_yaxis()
-        ax.set_aspect(m.shape[1] / m.shape[0])
+        ax.invert_yaxis()  # type: ignore
+        ax.set_aspect(m.shape[1] / m.shape[0])  # type: ignore
 
-        ax.tick_params(
+        ax.tick_params(  # type: ignore
             bottom=False,
             top=False,
             left=False,
@@ -49,50 +48,72 @@ def plot_hadron_correlation_matrices(
             which="both",
         )
 
+        nue = neutrino_labels["nue"]
+        nueb = neutrino_labels["nuebar"]
+        numu = neutrino_labels["numu"]
+        numub = neutrino_labels["numubar"]
+
+        kwargs = {"transform": ax.transAxes, "fontsize": 32, "fontweight": "bold", "ha": "center", "va": "top"}  # type: ignore
+        kwargs2 = {"transform": ax.transAxes, "fontsize": 32, "fontweight": "bold", "va": "center", "ha": "right"}  # type: ignore
+
         if len(horn_currents) == 1:
-            ax.text(0.5, -0.125, horn_currents[0].upper(), fontweight="bold", transform=ax.transAxes)
-            ax.text(-0.20, 0.5, horn_currents[0].upper(), fontweight="bold", transform=ax.transAxes)
-            ax.text(-0.055, 0.083, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.25, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.50, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.80, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
-            ax.text(0.083, -0.045, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(0.25, -0.045, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(0.50, -0.045, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(0.80, -0.045, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
+            xpos = -0.015
+            nu_coords = [[xpos, 0.09], [xpos, 0.25], [xpos, 0.50], [xpos, 0.85]]
+            horn = horn_currents[0].upper()
+            ax.text(0.50, -0.085, horn, ha="center", va="top", **kwargs)  # type: ignore
+            ax.text(-0.085, 0.50, horn, rotation=90, ha="right", va="center", **kwargs2)  # type: ignore
+
+            for (x, y), nu in zip(nu_coords, neutrino_labels.values()):
+                ax.text(x, y, nu, ha="right", va="center", **kwargs)  # type: ignore
+                ax.text(y, x, nu, **kwargs)  # type: ignore
         else:
-            ax.text(0.19, -0.125, "FHC", fontweight="bold", transform=ax.transAxes)
-            ax.text(0.68, -0.125, "RHC", fontweight="bold", transform=ax.transAxes)
-            ax.text(
-                -0.125, 0.21, "FHC", fontweight="bold", transform=ax.transAxes, rotation=90
+            ax.text(0.19, -0.125, "FHC", **kwargs)  # type: ignore
+            ax.text(0.68, -0.125, "RHC", **kwargs)  # type: ignore
+            ax.text(  # type: ignore
+                -0.125, 0.21, "FHC", rotation=90, **kwargs  # type: ignore
             )
-            ax.text(
-                -0.125, 0.71, "RHC", fontweight="bold", transform=ax.transAxes, rotation=90
+            ax.text(  # type: ignore
+                -0.125, 0.71, "RHC", rotation=90, **kwargs  # type: ignore
             )
-            ax.text(-0.055, 0.05, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.17, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.30, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.43, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.56, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.69, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.80, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(-0.055, 0.92, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
-            ax.text(0.04, -0.045, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(0.17, -0.045, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(0.30, -0.045, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(0.43, -0.045, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
-            ax.text(0.545, -0.045, r"$\mathrm{\nu_e}$", transform=ax.transAxes)
-            ax.text(0.675, -0.045, r"$\mathrm{\bar{\nu}_e}$", transform=ax.transAxes)
-            ax.text(0.80, -0.045, r"$\mathrm{\nu_\mu}$", transform=ax.transAxes)
-            ax.text(0.92, -0.045, r"$\mathrm{\bar{\nu}_\mu}$", transform=ax.transAxes)
+            ax.text(-0.055, 0.05, nue, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.17, nueb, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.30, numu, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.43, numub, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.56, nue, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.69, nueb, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.80, numu, **kwargs)  # type: ignore
+            ax.text(-0.055, 0.92, numub, **kwargs)  # type: ignore
+            ax.text(0.04, -0.045, nue, **kwargs)  # type: ignore
+            ax.text(0.17, -0.045, nueb, **kwargs)  # type: ignore
+            ax.text(0.30, -0.045, numu, **kwargs)  # type: ignore
+            ax.text(0.43, -0.045, numub, **kwargs)  # type: ignore
+            ax.text(0.545, -0.045, nue, **kwargs)  # type: ignore
+            ax.text(0.675, -0.045, nueb, **kwargs)  # type: ignore
+            ax.text(0.80, -0.045, numu, **kwargs)  # type: ignore
+            ax.text(0.92, -0.045, numub, **kwargs)  # type: ignore
+            # for n in range(1, 8):
+            #     ax.axhline(n * 15, c="k", lw=1)
+            #     ax.axvline(n * 15, c="k", lw=1)
 
-        # for n in range(1, 8):
-        #     ax.axhline(n * 15, c="k", lw=1)
-        #     ax.axvline(n * 15, c="k", lw=1)
+        yield key, fig
 
-        if output_dir is not None:
+
+def plot_hadron_correlation_matrices(
+    reader: SpectraReader, output_dir: Optional[Path] = None
+):
+    if output_dir is not None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    horn_currents = reader.horn_current
+    matrices = reader.hadron_correlation_matrices
+
+    figures = plot_matrices(matrices, horn_currents)
+
+    if output_dir is not None:
+        for key, fig in figures:
             category = key.split("/")[1]
             file_stem = f"{category}_correlation_matrix"
             tex_caption = ""
             tex_label = file_stem
             save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            plt.close(fig)

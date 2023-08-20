@@ -29,10 +29,10 @@ def plot_all(
     # reader.load_cache()
 
     jobs = (
-        (
-            plot_flux_prediction,
-            (reader, output_dir / "flux_spectra/flux_prediction", xlim),
-        ),
+        # (
+        #     plot_flux_prediction,
+        #     (reader, output_dir / "flux_spectra/flux_prediction", xlim),
+        # ),
         # (plot_parents, (reader, output_dir / "flux_spectra/parents")),
         # (
         #     plot_parents,
@@ -43,10 +43,10 @@ def plot_all(
         #     plot_hadron_fractional_uncertainties,
         #     (reader, output_dir / "hadron_uncertainties", (0, 10), (0, 0.15)),
         # ),
-        # (
-        #     plot_hadron_correlation_matrices,
-        #     (reader, output_dir / "covariance_matrices/hadron"),
-        # ),
+        (
+            plot_hadron_correlation_matrices,
+            (reader, output_dir / "covariance_matrices/hadron"),
+        ),
         # (
         #     plot_hadron_fractional_uncertainties_mesinc_breakout,
         #     (reader, output_dir / "hadron_uncertainties/meson_breakout"),
