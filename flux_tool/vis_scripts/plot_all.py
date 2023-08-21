@@ -24,7 +24,6 @@ def plot_all(
     products_file: Path | str,
     output_dir: Path,
     plot_opts: dict[str, Any],
-    # xlim: tuple[int, int] = (0, 20),
 ):
     plt.style.use(style)
 
