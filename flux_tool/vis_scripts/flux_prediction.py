@@ -99,8 +99,8 @@ def plot_flux_prediction(
             lw=2,
         )
 
-        # icarus_preliminary(ax, fontsize=24)  # type: ignore
-        place_header(ax, f"NuMI Simulation ({horn.upper()})", x_pos=0.58, fontsize=24)  # type: ignore
+        icarus_preliminary(ax, fontsize=24)  # type: ignore
+        place_header(ax, f"NuMI Simulation ({horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
 
         ax.set_ylabel(ylabel)  # type: ignore
         ax.set_xlabel(xlabel_enu)  # type: ignore

@@ -15,15 +15,15 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
 
 
 def plot_hadron_systs_and_pca_variances(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim=(0.0, 20.0),
+    ylim=(0.0, 0.03),
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
 
     plt.style.use(style)
-
-    xaxis_lim = (0, 6)
-    yaxis_lim = (0, 0.03)
 
     npcs = 8
 
@@ -181,8 +181,8 @@ def plot_hadron_systs_and_pca_variances(
         )
 
         for ax in axs:
-            ax.set_xlim(*xaxis_lim)
-            ax.set_ylim(*yaxis_lim)
+            ax.set_xlim(*xlim)
+            ax.set_ylim(*ylim)
             ax.legend(loc="upper center", fontsize=24, ncol=2)
             ax.set_xlabel(xlabel_enu)
 
@@ -193,7 +193,8 @@ def plot_hadron_systs_and_pca_variances(
         place_header(
             axs[0],
             f"{header[horn]} {neutrino_labels[nu]}",
-            x_pos=0.54,
+            (1.0, 1.0),
+            ha="right",
         )
 
         icarus_preliminary(axs[0])
@@ -201,7 +202,8 @@ def plot_hadron_systs_and_pca_variances(
         place_header(
             axs[1],
             r"$\mathrm{\sum \, \lambda_n =}$" + f" {eigenvals.sum()*100:0.1f}%",
-            x_pos=0.75,
+            (1.0, 1.0),
+            ha="right",
         )
 
         if output_dir is not None:

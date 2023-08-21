@@ -118,6 +118,24 @@ ppfx_labels = {
     "total": "Total",
 }
 
+beam_syst_labels = {
+    "beam_shift_y_plus": r"Beam Shift $y+1$ mm",
+    "beam_shift_y_minus": r"Beam Shift $y-1$ mm",
+    "beam_shift_y": r"Beam Shift $y \pm 1$ mm",
+    "beam_shift_x_plus": r"Beam Shift $x+1$ mm",
+    "beam_shift_x_minus": r"Beam Shift $x-1$ mm",
+    "beam_shift_x": r"Beam Shift $x \pm 1$ mm",
+    "beam_spot": r"Beam Spot Size $\pm 0.2$ cm",
+    "horn_current_plus": "Horn Current $+ 2$ kA",
+    "horn_current_minus": "Horn Current $- 2$ kA",
+    "horn_current": r"Horn Current $\pm 2$ kA",
+    "horn1_y": r"Horn 1 y-Position $\pm 0.3$ cm",
+    "horn1_x": r"Horn 1 x-Position $\pm 0.3$ cm",
+    "water_layer": r"Horn Water Layer $\pm 1$ mm",
+    "beam_div": r"54 $\mathrm{\mu}$rad Beam Divergence",
+    "total": "Total",
+}
+
 
 xlabel_enu = r"E$_\mathrm{\nu}$ [GeV]"
 ylabel_flux = r"$\mathrm{\phi_\nu}$ [m$^{-2}$ GeV$^{-1}$ POT$^{-1}$]"
@@ -134,30 +152,76 @@ def get_prop_cycler() -> Cycler:
     return prop_cycle
 
 
-def place_header(ax: Axes, header: str, fontsize=28, x_pos=0.0, **kwargs) -> None:
-    ax.text(
-        x_pos,
-        1.015,
+def place_header(
+    ax: Axes,
+    header: str,
+    xy: tuple[float, float] = (0.0, 1.0),
+    ha="left",
+    **kwargs
+) -> None:
+    ax.annotate(
         header,
+        xy,
+        xytext=(0, 3),
+        xycoords="axes fraction",
+        textcoords="offset points",
+        ha=ha,
+        va="bottom",
         fontweight="bold",
-        # fontstyle="italic",
-        fontsize=fontsize,
-        transform=ax.transAxes,
         **kwargs,
     )
 
-def icarus_preliminary(ax: Axes, fontsize=28, x_pos=0.0, **kwargs) -> None:
-    ax.text(
-        x_pos,
-        1.015,
-        r"ICARUS Preliminary",
+
+def icarus_preliminary(
+    ax: Axes, xy: tuple[float, float] = (0.0, 1.0), **kwargs
+) -> None:
+    """
+    Annotates a Matplotlib axes object with the label "ICARUS Preliminary".
+
+    This function adds a text annotation to the specified axes at the given
+    coordinates (xy). The text "ICARUS Preliminary" is used as the annotation,
+    and it is positioned with an offset from the specified coordinates.
+
+    Parameters:
+    ax (Axes): The Matplotlib axes object to which the annotation will be added.
+    xy (tuple[float, float], optional): The coordinates (x, y) where the annotation
+        arrow will point. Default is (0.0, 1.0).
+    **kwargs: Additional keyword arguments that are passed to the `annotate` function
+        of Matplotlib.
+
+    Returns:
+    None
+
+    Example:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    icarus_preliminary(ax)  # Annotate with "ICARUS Preliminary" label
+    plt.show()
+    """
+    ax.annotate(
+        "ICARUS Preliminary",
+        xy,
+        xytext=(0, 3),
+        xycoords="axes fraction",
+        textcoords="offset points",
+        ha="left",
+        va="bottom",
         fontweight="bold",
-        # fontstyle="italic",
-        fontsize=fontsize,
-        transform=ax.transAxes,
-        **kwargs
+        **kwargs,
     )
 
+    # ax.text(
+    #     x_pos,
+    #     1.015,
+    #     r"ICARUS Preliminary",
+    #     fontweight="bold",
+    #     # fontstyle="italic",
+    #     fontsize=fontsize,
+    #     transform=ax.transAxes,
+    #     **kwargs
+    # )
 
 
 def apply_style() -> None:

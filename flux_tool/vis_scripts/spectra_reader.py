@@ -26,6 +26,9 @@ class SpectraReader:
         return self._f[key]
 
     def load_cache(self) -> None:
+        self.beam_covariance_matrices
+        self.beam_correlation_matrices
+        self.beam_uncertainties
         self.flux_prediction
         self.flux_weights
         self.hadron_covariance_matrices
@@ -37,6 +40,15 @@ class SpectraReader:
         self.ppfx_correction
         self.principal_components
         self.universes
+
+    @cached_property
+    def beam_uncertainties(self):
+        return {
+            key: h
+            for key, h in self._f["fractional_uncertainties/beam/"].items(
+                cycle=False, filter_classname="TH1D"  # type: ignore
+            )
+        }
 
     @cached_property
     def flux_prediction(self):
@@ -62,6 +74,24 @@ class SpectraReader:
         return {
             key: h
             for key, h in self._f["covariance_matrices/hadron"].items(
+                filter_name="*/hcor*", filter_classname="TH2D", cycle=False  # type: ignore
+            )
+        }
+
+    @cached_property
+    def beam_covariance_matrices(self):
+        return {
+            key: h
+            for key, h in self._f["covariance_matrices/beam"].items(
+                filter_name="*/hcov*", filter_classname="TH2D", cycle=False  # type: ignore
+            )
+        }
+
+    @cached_property
+    def beam_correlation_matrices(self):
+        return {
+            key: h
+            for key, h in self._f["covariance_matrices/beam"].items(
                 filter_name="*/hcor*", filter_classname="TH2D", cycle=False  # type: ignore
             )
         }

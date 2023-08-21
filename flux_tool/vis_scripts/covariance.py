@@ -15,12 +15,6 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             continue
         fig, ax = plt.subplots(layout="constrained")
 
-        # h = mat.to_pyroot()
-        # print(
-        #     [h.GetXaxis().GetBinLabel(i) for i in range(1, h.GetXaxis().GetNbins() + 1)]
-        # )
-
-        # print(key)
         heatmap_kwargs = {
             "ax": ax,
             "cmap": "bwr",
@@ -53,8 +47,31 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
         numu = neutrino_labels["numu"]
         numub = neutrino_labels["numubar"]
 
-        kwargs = {"transform": ax.transAxes, "fontsize": 32, "fontweight": "bold", "ha": "center", "va": "top"}  # type: ignore
-        kwargs2 = {"transform": ax.transAxes, "fontsize": 32, "fontweight": "bold", "va": "center", "ha": "right"}  # type: ignore
+        kwargs = {
+            "transform": ax.transAxes,  # type: ignore
+            "fontsize": 32,
+            "fontweight": "bold",
+            "ha": "center",
+            "va": "top",
+        }
+        kwargs2 = {
+            "transform": ax.transAxes,  # type: ignore
+            "fontsize": 32,
+            "fontweight": "bold",
+            "va": "center",
+            "ha": "right",
+        }
+
+        ax.annotate(  # type: ignore
+            "ICARUS Preliminary",
+            (0.0, 1.0),
+            xytext=(0, 3),
+            xycoords="axes fraction",
+            textcoords="offset points",
+            ha="left",
+            va="bottom",
+            fontweight="bold",
+        )  # type: ignore
 
         if len(horn_currents) == 1:
             xpos = -0.015
@@ -67,33 +84,30 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
                 ax.text(x, y, nu, ha="right", va="center", **kwargs)  # type: ignore
                 ax.text(y, x, nu, **kwargs)  # type: ignore
         else:
-            ax.text(0.19, -0.125, "FHC", **kwargs)  # type: ignore
-            ax.text(0.68, -0.125, "RHC", **kwargs)  # type: ignore
+            ax.text(0.245, -0.085, "FHC", **kwargs)  # type: ignore
+            ax.text(0.765, -0.085, "RHC", **kwargs)  # type: ignore
             ax.text(  # type: ignore
-                -0.125, 0.21, "FHC", rotation=90, **kwargs  # type: ignore
+                -0.085, 0.245, "FHC", rotation=90, **kwargs2  # type: ignore
             )
             ax.text(  # type: ignore
-                -0.125, 0.71, "RHC", rotation=90, **kwargs  # type: ignore
+                -0.085, 0.765, "RHC", rotation=90, **kwargs2  # type: ignore
             )
-            ax.text(-0.055, 0.05, nue, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.17, nueb, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.30, numu, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.43, numub, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.56, nue, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.69, nueb, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.80, numu, **kwargs)  # type: ignore
-            ax.text(-0.055, 0.92, numub, **kwargs)  # type: ignore
-            ax.text(0.04, -0.045, nue, **kwargs)  # type: ignore
-            ax.text(0.17, -0.045, nueb, **kwargs)  # type: ignore
-            ax.text(0.30, -0.045, numu, **kwargs)  # type: ignore
-            ax.text(0.43, -0.045, numub, **kwargs)  # type: ignore
-            ax.text(0.545, -0.045, nue, **kwargs)  # type: ignore
-            ax.text(0.675, -0.045, nueb, **kwargs)  # type: ignore
-            ax.text(0.80, -0.045, numu, **kwargs)  # type: ignore
-            ax.text(0.92, -0.045, numub, **kwargs)  # type: ignore
-            # for n in range(1, 8):
-            #     ax.axhline(n * 15, c="k", lw=1)
-            #     ax.axvline(n * 15, c="k", lw=1)
+
+            xpos = -0.015
+            nu_coords = [
+                [xpos, 0.05, nue],
+                [xpos, 0.18, nueb],
+                [xpos, 0.31, numu],
+                [xpos, 0.44, numub],
+                [xpos, 0.57, nue],
+                [xpos, 0.70, nueb],
+                [xpos, 0.83, numu],
+                [xpos, 0.96, numub],
+            ]
+
+            for x, y, nu in nu_coords:
+                ax.text(x, y, nu, **kwargs2)  # type: ignore
+                ax.text(y, x, nu, **kwargs)  # type: ignore
 
         yield key, fig
 
@@ -106,6 +120,27 @@ def plot_hadron_correlation_matrices(
 
     horn_currents = reader.horn_current
     matrices = reader.hadron_correlation_matrices
+
+    figures = plot_matrices(matrices, horn_currents)
+
+    if output_dir is not None:
+        for key, fig in figures:
+            category = key.split("/")[1]
+            file_stem = f"{category}_correlation_matrix"
+            tex_caption = ""
+            tex_label = file_stem
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            plt.close(fig)
+
+
+def plot_beam_correlation_matrices(
+    reader: SpectraReader, output_dir: Optional[Path] = None
+):
+    if output_dir is not None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    horn_currents = reader.horn_current
+    matrices = reader.beam_correlation_matrices
 
     figures = plot_matrices(matrices, horn_currents)
 

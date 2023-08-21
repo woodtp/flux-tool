@@ -108,7 +108,7 @@ def main():
 
     logging.info("=============== MAKING PLOTS ===============")
 
-    plot_all(products_file, cfg.plots_path)
+    plot_all(products_file, cfg.plots_path, cfg.plot_opts)
 
     compress_directory(cfg.plots_path)
 

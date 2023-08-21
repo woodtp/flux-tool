@@ -15,6 +15,7 @@ class AnalysisConfig:
         "neutrinos",
         "nominal_samples",
         "output_file_name",
+        "plot_opts",
         "plots_path",
         "ppfx",
         "products_file",
@@ -26,6 +27,12 @@ class AnalysisConfig:
         self.neutrinos: list[str] = ["nue", "nuebar", "numu", "numubar"]
 
         def_binning = {nu: np.linspace(0, 20, num=201) for nu in self.neutrinos}
+
+        plotting = project_config["Plotting"]
+
+        self.plot_opts = {
+            "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0))
+        }
 
         binning = project_config.get("Binning", def_binning)
 
