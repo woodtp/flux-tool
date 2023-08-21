@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 from flux_tool.vis_scripts.covariance import (plot_beam_correlation_matrices,
                                               plot_hadron_correlation_matrices)
-from flux_tool.vis_scripts.flux_prediction import plot_flux_prediction
+from flux_tool.vis_scripts.flux_prediction import (
+    plot_flux_prediction, plot_flux_uncorrected_logarithmic)
 from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_beam_fractional_uncertainties, plot_hadron_fractional_uncertainties,
     plot_hadron_fractional_uncertainties_mesinc_breakout,
@@ -29,11 +30,17 @@ def plot_all(
 
     reader = SpectraReader(products_file)
 
-    # reader.load_cache()
+    logging.info(f"Reading ROOT objects from {products_file}...")
+    reader.load_cache()
+    logging.info("Done.")
 
     xlim: tuple[float, float] = plot_opts["xlim"]
 
     jobs = (
+        (
+            plot_flux_uncorrected_logarithmic,
+            (reader, output_dir / "flux_spectra/uncorrected_flux", xlim),
+        ),
         (
             plot_flux_prediction,
             (reader, output_dir / "flux_spectra/flux_prediction", xlim),
