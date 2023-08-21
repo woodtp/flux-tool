@@ -28,7 +28,7 @@ class AnalysisConfig:
         neutrino types.
     neutrinos (list): A list of neutrino types: ["nue", "nuebar", "numu", "numubar"].
     nominal_samples (dict): A dictionary containing paths to nominal samples for
-        "fhc" and "rhc" horns.
+        "fhc" and "rhc" horn operating modes.
     output_file_name (str): The name of the output file.
     plot_opts (dict): Plotting options, such as x-axis limits.
     plots_path (Path): Path to the directory where plots will be saved.
@@ -41,11 +41,12 @@ class AnalysisConfig:
     verify_paths(): Verifies the existence of necessary paths and creates them if missing.
     ignored_histogram_names: Generator yielding ignored histogram names based on PPFX settings.
     ignored_hist_filter(hist_name: str) -> bool: Checks if a histogram name should be ignored.
-    parse_filename(name: str) -> tuple[str, int]: Parses a filename to extract horn and run ID.
-    itersamples(): Iterates through source files, yielding file, horn, and run ID.
+    parse_filename(name: str) -> tuple[str, int]: Parses a filename to extract horn current and run ID.
+    itersamples(): Iterates through source files, yielding file, horn current, and run ID.
     from_str(config_str: str) -> AnalysisConfig: Creates an instance from a configuration string.
     from_file(config_file: str) -> AnalysisConfig: Creates an instance from a configuration file.
     """
+
     __slots__ = (
         "bin_edges",
         "neutrinos",
@@ -66,9 +67,7 @@ class AnalysisConfig:
 
         plotting = project_config["Plotting"]
 
-        self.plot_opts = {
-            "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0))
-        }
+        self.plot_opts = {"xlim": plotting.get("neutrino_energy_range", (0.0, 20.0))}
 
         binning = project_config.get("Binning", def_binning)
 
