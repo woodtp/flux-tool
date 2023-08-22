@@ -4,10 +4,60 @@ output_file_name = "out.root"
 
 sources = "~/path/to/directory/containing/input/histograms"
 
-# Specify bin edges for the output histograms.
-# If no edges are specified, the output histograms will use the same binning
-# as the inputs.
-bin_edges = [
+[Binning]
+nue = [
+  0.0,
+  0.2,
+  0.4,
+  0.6,
+  0.8,
+  1.0,
+  1.5,
+  2.0,
+  2.5,
+  3.0,
+  3.5,
+  4.0,
+  6.0,
+  8.0,
+  12.0,
+]
+nuebar = [
+  0.0,
+  0.2,
+  0.4,
+  0.6,
+  0.8,
+  1.0,
+  1.5,
+  2.0,
+  2.5,
+  3.0,
+  3.5,
+  4.0,
+  6.0,
+  8.0,
+  12.0,
+]
+numu = [
+  0.0,
+  0.2,
+  0.4,
+  0.6,
+  0.8,
+  1.0,
+  1.5,
+  2.0,
+  2.5,
+  3.0,
+  3.5,
+  4.0,
+  6.0,
+  8.0,
+  12.0,
+  20.0
+]
+numubar = [
   0.0,
   0.2,
   0.4,
@@ -27,7 +77,7 @@ bin_edges = [
 ]
 
 [PPFX]
-# enable/disable specific PPFX reweight categories from 
+# enable/disable specific PPFX reweight categories from
 # appearing in the fractional uncertainty directory
 # true = included, false = excluded
 [PPFX.enabled]
@@ -52,3 +102,6 @@ pCnu = true
 pCQEL = false
 others = true
 thintarget = false
+
+[Plotting]
+neutrino_energy_range = [0.0, 6.0]
