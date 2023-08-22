@@ -11,8 +11,6 @@ from flux_tool.vis_scripts.style import neutrino_labels
 
 def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
     for key, mat in matrices.items():
-        if "total" not in key:
-            continue
         fig, ax = plt.subplots(layout="constrained")
 
         heatmap_kwargs = {
@@ -146,7 +144,10 @@ def plot_beam_correlation_matrices(
 
     if output_dir is not None:
         for key, fig in figures:
-            category = key.split("/")[1]
+            category = key
+            if "/" in category:
+                category = category.split("/")[1]
+            category = category.split("_", 1)[1]
             file_stem = f"{category}_correlation_matrix"
             tex_caption = ""
             tex_label = file_stem

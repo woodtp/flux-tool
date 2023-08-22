@@ -83,7 +83,7 @@ class SpectraReader:
         return {
             key: h
             for key, h in self._f["covariance_matrices/beam"].items(
-                filter_name="*/hcov*", filter_classname="TH2D", cycle=False  # type: ignore
+                filter_name="*hcov*", filter_classname="TH2D", cycle=False  # type: ignore
             )
         }
 
@@ -92,7 +92,7 @@ class SpectraReader:
         return {
             key: h
             for key, h in self._f["covariance_matrices/beam"].items(
-                filter_name="*/hcor*", filter_classname="TH2D", cycle=False  # type: ignore
+                filter_name="*hcor*", filter_classname="TH2D", cycle=False  # type: ignore
             )
         }
 
