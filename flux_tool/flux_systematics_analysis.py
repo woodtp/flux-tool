@@ -51,7 +51,7 @@ class FluxSystematicsAnalysis:
         self.horn_modes = list(self.nominal_flux_df["horn_polarity"].unique())
 
     def run(self, pca_threshold: float = 1) -> None:
-        logging.info("======= BEGINNING ANALYSIS =======")
+        logging.info("\n=============== BEGINNING ANALYSIS ===============")
 
         logging.info(
             "Calculating flux correction and hadron production systematic uncertainties..."

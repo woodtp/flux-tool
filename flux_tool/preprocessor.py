@@ -12,7 +12,10 @@ class Preprocessor:
     __slots__ = ("nominal_flux_df", "ppfx_correction_df")
 
     def __init__(self, cfg: AnalysisConfig) -> None:
-        logging.info("Beginning preprocessing...")
+        logging.info("\n=============== BEGINNING PREPROCESSING ===============")
+        logging.info(
+            "Reading input files, normalized to POT, and rebinning, if necessary. This might take a while..."
+        )
         with Executor() as executor:
             res = executor.map(
                 partial(

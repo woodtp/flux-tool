@@ -91,21 +91,13 @@ def main():
         description="Interpret PPFX output into a neutrino flux prediction with uncertainties",
     )
     parser.add_argument(
-        "-d",
-        "--debug",
-        help="Print lots of debugging statements",
-        action="store_const",
-        dest="loglevel",
-        const=logging.DEBUG,
-        default=logging.WARNING,
-    )
-    parser.add_argument(
         "-v",
         "--verbose",
         help="Be verbose",
         action="store_const",
         dest="loglevel",
-        const=logging.INFO,
+        const=logging.DEBUG,
+        default=logging.INFO,
     )
     parser.add_argument(
         "-c", "--config", help="specify the path to a toml configuration file"
@@ -135,7 +127,7 @@ def main():
 
     products_file = plot if plot is not None else run_analysis(cfg)
 
-    logging.info("=============== MAKING PLOTS ===============")
+    logging.info("\n=============== MAKING PLOTS ===============")
 
     plot_all(products_file, cfg.plots_path, cfg.plot_opts)
 
