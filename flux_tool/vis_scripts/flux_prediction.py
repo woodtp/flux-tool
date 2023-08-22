@@ -15,7 +15,7 @@ from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
 def plot_flux_prediction(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int, int] = (0, 20),
+    xlim: tuple[float, float] = (0, 20),
 ):
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -121,7 +121,7 @@ def plot_flux_prediction(
 def plot_flux_uncorrected_logarithmic(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int, int] = (0, 20),
+    xlim: tuple[float, float] = (0, 20),
 ):
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)

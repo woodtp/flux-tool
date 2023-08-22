@@ -5,13 +5,11 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
-import uproot
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
-                                         place_header, ppfx_labels, style,
-                                         xlabel_enu)
+                                         place_header, ppfx_labels, xlabel_enu)
 
 
 def plot_hadron_systs_and_pca_variances(
@@ -22,8 +20,6 @@ def plot_hadron_systs_and_pca_variances(
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
-
-    plt.style.use(style)
 
     npcs = 8
 

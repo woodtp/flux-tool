@@ -13,7 +13,10 @@ from flux_tool.vis_scripts.style import (neutrino_labels,
 
 
 def plot_parents(
-    reader: SpectraReader, output_dir: Path, stacked: bool = False
+    reader: SpectraReader,
+    output_dir: Path,
+    xlim: tuple[float, float] = (0, 20),
+    stacked: bool = False,
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
@@ -89,7 +92,7 @@ def plot_parents(
 
         correction_label = f"PPFX corrected {neutrino_labels[nu]} flux"
 
-        ax1.set_xlim(0, 6)  # type: ignore
+        ax1.set_xlim(xlim)  # type: ignore
 
         ax1.set_ylabel(create_ylabel_with_scale(int(power)))  # type: ignore
         ax1.set_xlabel(xlabel_enu)  # type: ignore

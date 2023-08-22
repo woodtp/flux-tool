@@ -10,7 +10,7 @@ from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (beam_syst_labels, icarus_preliminary,
                                          neutrino_labels, place_header,
-                                         ppfx_labels, style, xlabel_enu)
+                                         ppfx_labels, xlabel_enu)
 
 
 def plot_hadron_fractional_uncertainties(
@@ -21,8 +21,6 @@ def plot_hadron_fractional_uncertainties(
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
-
-    plt.style.use(style)
 
     ppfx_correction = reader.ppfx_correction
     hadron_uncertainties = reader.hadron_uncertainties
@@ -86,8 +84,6 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
     xlim: tuple[int | float, int | float] = (0, 6),
     ylim: tuple[int | float, int | float] = (0, 0.2),
 ) -> None:
-    plt.style.use(style)
-
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
@@ -168,8 +164,6 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
     xlim: tuple[int | float, int | float] = (0, 6),
     ylim: tuple[int | float, int | float] = (0, 0.2),
 ) -> None:
-    plt.style.use(style)
-
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
@@ -247,8 +241,6 @@ def plot_beam_fractional_uncertainties(
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
-
-    plt.style.use(style)
 
     ppfx_correction = reader.ppfx_correction
     uncertainties = reader.beam_uncertainties
