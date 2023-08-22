@@ -22,7 +22,7 @@ def save_figure(
 ) -> None:
     def write_images(ext):
         file_name = f"{output_dir}/{fig_name}.{ext}"
-        logging.info(f"Saving image {file_name}...")
+        logging.debug(f"Saving image {file_name}...")
         fig.savefig(file_name)
 
     def write_figure():
@@ -30,7 +30,7 @@ def save_figure(
 
         tex_filename = f"{output_dir}/{fig_name}.tex"
 
-        logging.info(f"Writing figure to {tex_filename}...")
+        logging.debug(f"Writing figure to {tex_filename}...")
 
         with open(tex_filename, "w") as texfile:
             texfile.write(tex_figure)

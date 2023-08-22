@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "flux-tool"
+name = "flux_tool"
 version = "1.0.0"
 description = "Package used to study the output histograms from PPFX"
 authors = ["Anthony Wood <apwood@uh.edu>"]
@@ -20,7 +20,7 @@ hist = "^2.6.3"
 scipy = "^1.11.1"
 
 [tool.poetry.scripts]
-flux-tool = "flux_tool"
+flux_tool = "flux_tool.main:main"
 
 
 [tool.poetry.group.dev.dependencies]

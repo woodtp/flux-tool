@@ -1,4 +1,5 @@
 import logging
+import signal
 import sys
 from argparse import ArgumentParser
 from importlib.util import find_spec
@@ -8,7 +9,7 @@ from flux_tool.config import AnalysisConfig
 from flux_tool.exporter import Exporter
 from flux_tool.flux_systematics_analysis import FluxSystematicsAnalysis
 from flux_tool.preprocessor import Preprocessor
-from flux_tool.vis_scripts.plot_all import plot_all, compress_directory
+from flux_tool.vis_scripts.plot_all import compress_directory, plot_all
 
 
 def timer(fn):
@@ -19,6 +20,14 @@ def timer(fn):
         logging.info(f"Finished in {end-start:0.2f} s")
 
     return wrap
+
+
+def signal_handler(sig, frame):
+    print("Interrupted. Exiting...")
+    exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 def check_for_ROOT() -> None:
@@ -44,7 +53,7 @@ def load_config(cfg_path: str) -> AnalysisConfig:
         cfg = AnalysisConfig.from_file(cfg_path)
     except FileNotFoundError:
         print(f'The configuration file "{cfg_path}" was not found. Exiting...')
-        sys.exit()
+        sys.exit(1)
     return cfg
 
 
@@ -82,17 +91,37 @@ def main():
         description="Interpret PPFX output into a neutrino flux prediction with uncertainties",
     )
     parser.add_argument(
+        "-d",
+        "--debug",
+        help="Print lots of debugging statements",
+        action="store_const",
+        dest="loglevel",
+        const=logging.DEBUG,
+        default=logging.WARNING,
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Be verbose",
+        action="store_const",
+        dest="loglevel",
+        const=logging.INFO,
+    )
+    parser.add_argument(
         "-c", "--config", help="specify the path to a toml configuration file"
     )
 
     parser.add_argument(
-        "--plot",
+        "-p",
+        "--plots-only",
+        dest="plot",
+        metavar="PRODUCTS_FILE",
         help="Specify path to an existing ROOT file for which to produce plots",
     )
 
     args = parser.parse_args()
 
-    logging.basicConfig(format="%(message)s", level=logging.INFO)
+    logging.basicConfig(format="%(message)s", level=args.loglevel)
 
     cfg_str = args.config
 
