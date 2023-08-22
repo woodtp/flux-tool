@@ -8,9 +8,6 @@ from rich.progress import Progress
 from flux_tool.config import AnalysisConfig
 from flux_tool.normalize_and_rebin_data import normalize_flux_to_pot
 
-# from tqdm import tqdm
-
-
 
 class Preprocessor:
     __slots__ = ("nominal_flux_df", "ppfx_correction_df")

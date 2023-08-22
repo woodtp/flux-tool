@@ -16,8 +16,8 @@ from flux_tool.vis_scripts.style import (beam_syst_labels, icarus_preliminary,
 def plot_hadron_fractional_uncertainties(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int | float, int | float] = (0, 20),
-    ylim: tuple[int | float, int | float] = (0, 0.2),
+    xlim: tuple[float, float] = (0, 20),
+    ylim: tuple[float, float] = (0, 0.2),
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
@@ -81,8 +81,8 @@ def plot_hadron_fractional_uncertainties(
 def plot_hadron_fractional_uncertainties_mesinc_breakout(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int | float, int | float] = (0, 6),
-    ylim: tuple[int | float, int | float] = (0, 0.2),
+    xlim: tuple[float, float] = (0, 6),
+    ylim: tuple[float, float] = (0, 0.2),
 ) -> None:
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
@@ -161,8 +161,8 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
 def plot_hadron_fractional_uncertainties_mesinc_only(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int | float, int | float] = (0, 6),
-    ylim: tuple[int | float, int | float] = (0, 0.2),
+    xlim: tuple[float, float] = (0, 6),
+    ylim: tuple[float, float] = (0, 0.2),
 ) -> None:
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
@@ -236,8 +236,8 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
 def plot_beam_fractional_uncertainties(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
-    xlim: tuple[int | float, int | float] = (0, 20),
-    ylim: tuple[int | float, int | float] = (0, 0.2),
+    xlim: tuple[float, float] = (0, 20),
+    ylim: tuple[float, float] = (0, 0.2),
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
@@ -297,8 +297,8 @@ def create_figure(
     nu,
     labels,
     total_uncert=None,
-    xlim: tuple[int | float, int | float] = (0, 20),
-    ylim: tuple[int | float, int | float] = (0, 0.2),
+    xlim: tuple[float, float] = (0, 20),
+    ylim: tuple[float, float] = (0, 0.2),
 ):
     n_spectra = len(uncerts)
 
@@ -344,3 +344,12 @@ def create_figure(
     icarus_preliminary(ax)  # type: ignore
 
     return fig
+
+
+def plot_beam_fractional_shifts(
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim: tuple[float, float] = (0, 20),
+    ylim: tuple[float, float] = (0, 0.2),
+):
+    pass
