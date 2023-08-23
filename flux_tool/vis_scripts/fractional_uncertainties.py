@@ -346,10 +346,75 @@ def create_figure(
     return fig
 
 
-def plot_beam_fractional_shifts(
+def plot_beam_systematic_shifts(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
-    ylim: tuple[float, float] = (0, 0.2),
+    # ylim: tuple[float, float] = (0, 0.1),
 ):
-    pass
+    if output_dir is not None:
+        output_dir.mkdir(exist_ok=True, parents=True)
+
+    shifts = reader.beam_systematic_shifts
+
+    for key, shift in shifts.items():
+        if "beam_power" in key:
+            continue
+        tmp, horn, nu = key.rsplit("_", 2)
+        _, _, syst = tmp.split("_", 2)
+
+        label = beam_syst_labels[syst]
+
+        stats, bins = reader[f"statistical_uncertainties/hstat_{horn}_{nu}"].to_numpy()  # type: ignore
+
+        fig, ax = plt.subplots(layout="constrained", figsize=(11, 11))
+
+        hep.histplot(
+            H=shift, label=label, ax=ax, yerr=False, edges=False, lw=3, zorder=10
+        )
+        hep.histplot(
+            H=stats,
+            bins=bins,
+            ax=ax,
+            histtype="fill",
+            label=r"$\mathrm{\sigma}_\mathsf{stat}$",
+            color="C5",
+            alpha=0.4,
+            zorder=0,
+        )
+        hep.histplot(
+            H=-1 * stats,
+            bins=bins,
+            ax=ax,
+            histtype="fill",
+            color="C5",
+            alpha=0.4,
+            zorder=0,
+        )
+
+        ax.axhline(0, ls="--", color="k", zorder=1)  # type: ignore
+
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(-0.1, 0.1)  # type: ignore
+        ax.legend(loc="best")  # type: ignore
+        ax.set_xlabel(xlabel_enu)  # type: ignore
+        ax.set_ylabel(r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}}$")  # type: ignore
+
+        icarus_preliminary(ax) # type: ignore
+
+        place_header(
+            ax,  # type: ignore
+            f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})",
+            xy=(1.0, 1.0),
+            ha="right",
+        )
+
+        if output_dir is not None:
+            prefix = f"{horn}_{nu}"
+            fig_name = f"{prefix}_{syst}_systematic_shift"
+            tex_label = fig_name
+            tex_caption = ""
+
+            save_figure(fig, fig_name, output_dir, tex_caption, tex_label)  # type: ignore
+
+        plt.close(fig)

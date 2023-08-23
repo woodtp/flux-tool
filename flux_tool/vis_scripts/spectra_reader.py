@@ -28,6 +28,7 @@ class SpectraReader:
     def load_cache(self) -> None:
         self.beam_covariance_matrices
         self.beam_correlation_matrices
+        self.beam_systematic_shifts
         self.beam_uncertainties
         self.flux_prediction
         self.flux_weights
@@ -49,6 +50,10 @@ class SpectraReader:
                 cycle=False, filter_classname="TH1D"  # type: ignore
             )
         }
+
+    @cached_property
+    def beam_systematic_shifts(self):
+        return {key: h for key, h in self._f["beam_systematic_shifts"].items(cycle=False)}  # type: ignore
 
     @cached_property
     def flux_prediction(self):

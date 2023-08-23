@@ -1,5 +1,4 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from itertools import product
 from pathlib import Path
 from typing import Generator, Optional
@@ -20,24 +19,19 @@ def get_all_neutrinos() -> Generator[tuple[str, str], None, None]:
 def save_figure(
     fig: Figure, fig_name: str, output_dir: Path | str, tex_caption: str, tex_label: str
 ) -> None:
-    def write_images(ext):
+    for ext in get_plot_extensions():
         file_name = f"{output_dir}/{fig_name}.{ext}"
         logging.debug(f"Saving image {file_name}...")
         fig.savefig(file_name)
 
-    def write_figure():
-        tex_figure = build_latex_figure(f"{fig_name}.pdf", tex_caption, tex_label)
+    tex_figure = build_latex_figure(f"{fig_name}.pdf", tex_caption, tex_label)
 
-        tex_filename = f"{output_dir}/{fig_name}.tex"
+    tex_filename = f"{output_dir}/{fig_name}.tex"
 
-        logging.debug(f"Writing figure to {tex_filename}...")
+    logging.debug(f"Writing figure to {tex_filename}...")
 
-        with open(tex_filename, "w") as texfile:
-            texfile.write(tex_figure)
-
-    with ThreadPoolExecutor(max_workers=3) as exe:
-        exe.map(write_images, get_plot_extensions())
-        exe.submit(write_figure)
+    with open(tex_filename, "w") as texfile:
+        texfile.write(tex_figure)
 
 
 def get_plot_extensions() -> Generator[str, None, None]:
