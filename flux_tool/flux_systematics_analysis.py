@@ -181,7 +181,7 @@ class FluxSystematicsAnalysis:
     @property
     def _total_covariance_matrix(self) -> pd.DataFrame:
         logging.info("Computing total covariance matrix...")
-        hp_mat = self.rescale_matrix(self.pca_covariance_matrix)
+        hp_mat = self.hadron_systematics.covariance_matrices.loc["absolute", "total"]
         total_mat = hp_mat + self.stat_uncert_matrix
         if self.beam_systematics_is_initialized:
             beam_tot_cov = self.beam_systematics.total_covariance_matrix.loc["absolute"]
