@@ -99,7 +99,7 @@ def plot_flux_prediction(
             lw=2,
         )
 
-        icarus_preliminary(ax, fontsize=24)  # type: ignore
+        # icarus_preliminary(ax, fontsize=24)  # type: ignore
         place_header(ax, f"NuMI Simulation ({horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
 
         ax.set_ylabel(ylabel)  # type: ignore
@@ -222,7 +222,7 @@ def plot_flux_uncorrected_logarithmic(
         ax2.axhline(1, ls="--", lw=2, color="k")
         ax2.set_ylabel(" / ".join(ylabel))
 
-        icarus_preliminary(ax1, fontsize=24)
+        # icarus_preliminary(ax1, fontsize=24)
         place_header(ax1, f"NuMI Simulation (Uncorrected, {horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
 
         if output_dir is not None:

@@ -55,7 +55,7 @@ def plot_ppfx_universes(
 
         ax.plot([], [], " ", label="PPFX Input")
 
-        nu_label = neutrino_labels[nu]
+        # nu_label = neutrino_labels[nu]
 
         hep.histplot(
             H=nom_scaled,

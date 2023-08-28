@@ -341,7 +341,8 @@ def create_figure(
     ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")  # type: ignore
     ax.tick_params(labelsize=28)  # type: ignore
     place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", xy=(1.0, 1.0), ha="right")  # type: ignore
-    icarus_preliminary(ax)  # type: ignore
+    # hep.label.exp_label(exp="DUNE", label="", ax=ax)
+    # icarus_preliminary(ax)  # type: ignore
 
     return fig
 
@@ -400,7 +401,7 @@ def plot_beam_systematic_shifts(
         ax.set_xlabel(xlabel_enu)  # type: ignore
         ax.set_ylabel(r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}}$")  # type: ignore
 
-        icarus_preliminary(ax)  # type: ignore
+        # icarus_preliminary(ax)  # type: ignore
 
         place_header(
             ax,  # type: ignore

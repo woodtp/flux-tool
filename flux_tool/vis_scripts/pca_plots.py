@@ -193,7 +193,7 @@ def plot_hadron_systs_and_pca_variances(
             ha="right",
         )
 
-        icarus_preliminary(axs[0])
+        # icarus_preliminary(axs[0])
 
         place_header(
             axs[1],
