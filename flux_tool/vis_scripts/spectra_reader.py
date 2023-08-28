@@ -14,10 +14,11 @@ class SpectraReader:
             for key in self._f["ppfx_output"].keys(filter_name="*/nu*", cycle=False)  # type: ignore
         ]
 
+
         self.horn_current = list({item[0] for item in horns_nus})
         self.neutrinos = list({item[1] for item in horns_nus})
 
-        self.horns_and_nus = product(self.horn_current, self.neutrinos)
+        self.horns_and_nus = list(product(self.horn_current, self.neutrinos))
 
     def __del__(self):
         self._f.close()  # type: ignore
@@ -130,10 +131,11 @@ class SpectraReader:
 
     @cached_property
     def pot(self):
-        return {
-            "fhc": self._f["ppfx_output/fhc/hpot"].values().max(),  # type: ignore
-            "rhc": self._f["ppfx_output/rhc/hpot"].values().max(),  # type: ignore
+        pot = {
+            horn: self._f[f"ppfx_output/{horn}/hpot"].values().max()  # type: ignore
+            for horn in self.horn_current
         }
+        return pot
 
     @cached_property
     def ppfx_correction(self):

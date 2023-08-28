@@ -59,7 +59,7 @@ def plot_all(
 
     if enabled_plots["ppfx_universes"]:
         logging.info("Plotting PPFX universes...")
-        plot_ppfx_universes(reader, output_dir / "flux_spectra/universes")
+        plot_ppfx_universes(reader, output_dir / "flux_spectra/universes", xlim)
 
     if enabled_plots["hadron_uncertainties"]:
         logging.info("Plotting hadron uncertainties...")

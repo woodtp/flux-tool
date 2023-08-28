@@ -39,10 +39,7 @@ def plot_parents(
         "rhc": {"nue": 1.5, "nuebar": 1.5, "numu": 0.8, "numubar": 0.8},
     }
 
-    horns = ["fhc", "rhc"]
-    nus = ["nue", "nuebar", "numu", "numubar"]
-
-    for horn, nu in product(horns, nus):
+    for horn, nu in reader.horns_and_nus:
         _, bins = ppfx_correction[f"htotal_{horn}_{nu}"].to_numpy()
 
         nu_correction = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()

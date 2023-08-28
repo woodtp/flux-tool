@@ -12,7 +12,11 @@ from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
                                          xlabel_enu)
 
 
-def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None):
+def plot_ppfx_universes(
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim: tuple[float, float] = (0.0, 20.0),
+):
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -21,10 +25,8 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
     ppfx_correction = reader.ppfx_correction
 
     pot = reader.pot
-    horns = ["fhc", "rhc"]
-    nus = ["nue", "nuebar", "numu", "numubar"]
 
-    for horn, nu in product(horns, nus):
+    for horn, nu in reader.horns_and_nus:
         unis = [universes[f"{horn}/{nu}_total/htotal_{nu}_{x}"] for x in range(100)]
         nom = nominal_flux[f"{horn}/nom/hnom_{nu}"]
         correction = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
@@ -57,7 +59,7 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
 
         hep.histplot(
             H=nom_scaled,
-            label=f"Uncorrected Flux",
+            label="Uncorrected Flux",
             # bins=bins,
             color="k",
             lw=3,
@@ -73,7 +75,7 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
 
         hep.histplot(
             H=H[0],
-            label=f"Flux Universes",
+            label="Flux Universes",
             color="C4",
             lw=1,
             yerr=False,
@@ -105,7 +107,7 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
             zorder=15,
         )
 
-        ax.set_xlim(0, 6)
+        ax.set_xlim(xlim)
         ax.set_xlabel(xlabel_enu)
         ax.set_ylabel(create_ylabel_with_scale(int(power)))
 

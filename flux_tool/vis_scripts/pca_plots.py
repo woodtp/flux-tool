@@ -28,7 +28,7 @@ def plot_hadron_systs_and_pca_variances(
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
-        product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]),
+        reader.horns_and_nus,
         ["daughter", "projectile"],
     )
 

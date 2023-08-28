@@ -87,7 +87,7 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
-        product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]),
+        reader.horns_and_nus,
         ["daughter", "projectile"],
     )
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
@@ -167,7 +167,7 @@ def plot_hadron_fractional_uncertainties_mesinc_only(
     version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
-        product(["fhc", "rhc"], ["numu", "numubar", "nue", "nuebar"]),
+        reader.horns_and_nus,
         ["daughter", "projectile"],
     )
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
@@ -400,7 +400,7 @@ def plot_beam_systematic_shifts(
         ax.set_xlabel(xlabel_enu)  # type: ignore
         ax.set_ylabel(r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}}$")  # type: ignore
 
-        icarus_preliminary(ax) # type: ignore
+        icarus_preliminary(ax)  # type: ignore
 
         place_header(
             ax,  # type: ignore

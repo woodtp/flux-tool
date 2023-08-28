@@ -49,15 +49,15 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             "transform": ax.transAxes,  # type: ignore
             "fontsize": 32,
             "fontweight": "bold",
-            "ha": "center",
-            "va": "top",
+            # "ha": "center",
+            # "va": "top",
         }
         kwargs2 = {
             "transform": ax.transAxes,  # type: ignore
             "fontsize": 32,
             "fontweight": "bold",
-            "va": "center",
-            "ha": "right",
+            # "va": "center",
+            # "ha": "right",
         }
 
         ax.annotate(  # type: ignore
@@ -80,15 +80,15 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
 
             for (x, y), nu in zip(nu_coords, neutrino_labels.values()):
                 ax.text(x, y, nu, ha="right", va="center", **kwargs)  # type: ignore
-                ax.text(y, x, nu, **kwargs)  # type: ignore
+                ax.text(y, x, nu, ha="center", va="top", **kwargs)  # type: ignore
         else:
-            ax.text(0.245, -0.085, "FHC", **kwargs)  # type: ignore
-            ax.text(0.765, -0.085, "RHC", **kwargs)  # type: ignore
+            ax.text(0.245, -0.085, "FHC", ha="center", va="top", **kwargs)  # type: ignore
+            ax.text(0.765, -0.085, "RHC", ha="center", va="top", **kwargs)  # type: ignore
             ax.text(  # type: ignore
-                -0.085, 0.245, "FHC", rotation=90, **kwargs2  # type: ignore
+                -0.085, 0.245, "FHC", rotation=90, ha="right", va="center", **kwargs2  # type: ignore
             )
             ax.text(  # type: ignore
-                -0.085, 0.765, "RHC", rotation=90, **kwargs2  # type: ignore
+                -0.085, 0.765, "RHC", rotation=90, ha="right", va="center", **kwargs2  # type: ignore
             )
 
             xpos = -0.015
@@ -104,8 +104,8 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             ]
 
             for x, y, nu in nu_coords:
-                ax.text(x, y, nu, **kwargs2)  # type: ignore
-                ax.text(y, x, nu, **kwargs)  # type: ignore
+                ax.text(x, y, nu, ha="right", va="center", **kwargs2)  # type: ignore
+                ax.text(y, x, nu, ha="center", va="top", **kwargs)  # type: ignore
 
         yield key, fig
 
