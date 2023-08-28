@@ -105,3 +105,17 @@ thintarget = false
 
 [Plotting]
 neutrino_energy_range = [0.0, 6.0]
+[Plotting.enabled]
+uncorrected_flux = true
+flux_prediction = true
+flux_prediction_parent_spectra = true
+flux_prediction_parent_spectra_stacked = true
+ppfx_universes = true
+hadron_uncertainties = true
+hadron_uncertainties_meson = true
+hadron_uncertainties_meson_only = true
+pca_variances = true
+hadron_correlation_matrices = true
+beam_uncertainties = true
+beam_correlation_matrices = true
+beam_systematic_shifts = true

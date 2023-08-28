@@ -67,7 +67,10 @@ class AnalysisConfig:
 
         plotting = project_config["Plotting"]
 
-        self.plot_opts = {"xlim": plotting.get("neutrino_energy_range", (0.0, 20.0))}
+        self.plot_opts = {
+            "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0)),
+            "enabled": plotting["enabled"],
+        }
 
         binning = project_config.get("Binning", def_binning)
 
