@@ -57,7 +57,7 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
 
         hep.histplot(
             H=nom_scaled,
-            label=f"{nu_label} nominal",
+            label=f"Uncorrected Flux",
             # bins=bins,
             color="k",
             lw=3,
@@ -73,7 +73,7 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
 
         hep.histplot(
             H=H[0],
-            label=f"{nu_label} universes",
+            label=f"Flux Universes",
             color="C4",
             lw=1,
             yerr=False,
@@ -93,15 +93,16 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
 
         hep.histplot(
             H=correction,
-            label=f"{neutrino_labels[nu]} mean",
+            label=r"Mean Flux ($\pm \mathrm{\sigma}$)",
             color="C0",
             histtype="errorbar",
-            xerr=True,
+            xerr=False,
             capsize=4,
             elinewidth=4,
-            marker=None,
+            marker="o",
             binwnorm=1,
             ax=ax,
+            zorder=15,
         )
 
         ax.set_xlim(0, 6)
@@ -116,16 +117,9 @@ def plot_ppfx_universes(reader: SpectraReader, output_dir: Optional[Path] = None
             loc="best",
         )
 
-        place_header(ax, f"NuMI Simulation ({horn.upper()})")
+        place_header(ax, f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})")
 
-        ax.text(
-            0.1,
-            0.925,
-            "ICARUS Preliminary",
-            fontweight="bold",
-            fontsize=20,
-            transform=ax.transAxes,
-        )
+        # place_header(ax, "ICARUS Preliminary", (1.0, 1.0), ha="right")
 
         for item, label in zip(leg.legend_handles, leg.texts):
             if label._text in ["PPFX Input", "PPFX Output"]:
