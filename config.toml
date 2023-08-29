@@ -104,6 +104,9 @@ others = true
 thintarget = false
 
 [Plotting]
+draw_label = true
+experiment = "ICARUS"
+stage = "Preliminary"
 neutrino_energy_range = [0.0, 6.0]
 [Plotting.enabled]
 uncorrected_flux = true

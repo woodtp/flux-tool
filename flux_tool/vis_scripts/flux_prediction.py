@@ -1,6 +1,6 @@
 from itertools import product
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -16,6 +16,7 @@ def plot_flux_prediction(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
+    exp_label: bool | Callable[[plt.Axes], None] = False,
 ):
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -99,8 +100,10 @@ def plot_flux_prediction(
             lw=2,
         )
 
+        if exp_label:
+            exp_label(ax=ax)
         # icarus_preliminary(ax, fontsize=24)  # type: ignore
-        place_header(ax, f"NuMI Simulation ({horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
+        # place_header(ax, f"NuMI Simulation ({horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
 
         ax.set_ylabel(ylabel)  # type: ignore
         ax.set_xlabel(xlabel_enu)  # type: ignore

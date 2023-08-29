@@ -1,9 +1,11 @@
 import logging
 import tarfile
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
+import mplhep as hep
 
 from flux_tool.vis_scripts.covariance import (plot_beam_correlation_matrices,
                                               plot_hadron_correlation_matrices)
@@ -30,6 +32,16 @@ def plot_all(
 
     reader = SpectraReader(products_file)
 
+    if plot_opts["draw_label"]:
+        exp_label = partial(
+            hep.label.exp_label,
+            exp=plot_opts["experiment"],
+            llabel=plot_opts["stage"],
+            rlabel="",
+        )
+    else:
+        exp_label = False
+
     xlim: tuple[float, float] = plot_opts["xlim"]
 
     enabled_plots = plot_opts["enabled"]
@@ -47,7 +59,9 @@ def plot_all(
 
     if enabled_plots["flux_prediction"]:
         logging.info("Plotting flux prediction...")
-        plot_flux_prediction(reader, output_dir / "flux_spectra/flux_prediction", xlim)
+        plot_flux_prediction(
+            reader, output_dir / "flux_spectra/flux_prediction", xlim, exp_label
+        )
 
     if enabled_plots["flux_prediction_parent_spectra"]:
         logging.info("Plotting parent spectra...")

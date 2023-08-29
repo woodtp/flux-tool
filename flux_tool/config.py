@@ -68,6 +68,9 @@ class AnalysisConfig:
         plotting = project_config["Plotting"]
 
         self.plot_opts = {
+            "draw_label": plotting["draw_label"],
+            "experiment": plotting["experiment"],
+            "stage": plotting["stage"],
             "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0)),
             "enabled": plotting["enabled"],
         }
