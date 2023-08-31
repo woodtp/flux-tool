@@ -132,8 +132,8 @@ def plot_parents(
                 hep.histplot(H=H, label=labels, lw=2, ax=ax, **opts)  # type: ignore
             ax1.legend(loc="best")  # type: ignore
 
-        xlim = (2, 6) if "nue" in nu else (1, 4)
-        axins.set_xlim(*xlim)
+        xlim2 = (2, 6) if "nue" in nu else (1, 4)
+        axins.set_xlim(xlim2)
 
         axins.set_ylim(0, ylim_high[horn][nu])
 
