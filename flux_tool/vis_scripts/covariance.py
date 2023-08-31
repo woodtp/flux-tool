@@ -60,16 +60,16 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             # "ha": "right",
         }
 
-        ax.annotate(  # type: ignore
-            "ICARUS Preliminary",
-            (0.0, 1.0),
-            xytext=(0, 3),
-            xycoords="axes fraction",
-            textcoords="offset points",
-            ha="left",
-            va="bottom",
-            fontweight="bold",
-        )  # type: ignore
+        # ax.annotate(  # type: ignore
+        #     "ICARUS Preliminary",
+        #     (0.0, 1.0),
+        #     xytext=(0, 3),
+        #     xycoords="axes fraction",
+        #     textcoords="offset points",
+        #     ha="left",
+        #     va="bottom",
+        #     fontweight="bold",
+        # )  # type: ignore
 
         if len(horn_currents) == 1:
             xpos = -0.015
