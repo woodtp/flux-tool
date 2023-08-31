@@ -17,7 +17,8 @@ from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_hadron_fractional_uncertainties_mesinc_breakout,
     plot_hadron_fractional_uncertainties_mesinc_only)
 from flux_tool.vis_scripts.parent_spectra import plot_parents
-from flux_tool.vis_scripts.pca_plots import plot_hadron_systs_and_pca_variances
+from flux_tool.vis_scripts.pca_plots import (
+    plot_hadron_systs_and_pca_variances, plot_pca_systematic_shifts)
 from flux_tool.vis_scripts.ppfx_universes import plot_ppfx_universes
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import style
@@ -94,12 +95,16 @@ def plot_all(
 
     if enabled_plots["pca_variances"]:
         logging.info("Plotting PCA variances...")
-        plot_hadron_systs_and_pca_variances(reader, output_dir / "pca", xlim)
+        plot_hadron_systs_and_pca_variances(reader, output_dir / "pca/variances", xlim)
+
+    if enabled_plots["pca_components"]:
+        logging.info("Plotting princpal components...")
+        plot_pca_systematic_shifts(reader, output_dir / "pca/components", xlim, (-0.12, 0.12))
 
     if enabled_plots["beam_uncertainties"]:
         logging.info("Plotting beam uncertainties...")
         plot_beam_fractional_uncertainties(
-            reader, output_dir / "beam_uncertainties", xlim, (0, 0.18)
+            reader, output_dir / "beam_uncertainties", xlim, (0, 0.06)
         )
 
     if enabled_plots["hadron_correlation_matrices"]:

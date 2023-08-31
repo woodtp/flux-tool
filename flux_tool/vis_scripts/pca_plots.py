@@ -19,7 +19,7 @@ def plot_hadron_systs_and_pca_variances(
     ylim=(0.0, 0.03),
 ) -> None:
     if output_dir is not None:
-        output_dir.mkdir(exist_ok=True)
+        output_dir.mkdir(exist_ok=True, parents=True)
 
     npcs = 8
 
@@ -211,5 +211,56 @@ def plot_hadron_systs_and_pca_variances(
             tex_label = f"variance_{prefix}"
 
             save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+        plt.close(fig)
+
+
+def plot_pca_systematic_shifts(
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    xlim: tuple[float, float] = (0, 20),
+    ylim: tuple[float, float] = (-0.1, 0.1),
+):
+    if output_dir is not None:
+        output_dir.mkdir(exist_ok=True, parents=True)
+
+    shifts = reader.principal_components
+
+    n_comps = 4
+
+    for horn, nu in reader.horns_and_nus:
+        comps = [shifts[f"hpc_{n}_{horn}_{nu}"] for n in range(n_comps)]
+        labels = [f"$\\mathrm{{\\lambda_{n}}}$" for n in range(n_comps)]
+
+        fig, ax = plt.subplots(layout="constrained", figsize=(11, 11))
+
+        hep.histplot(
+            H=comps, label=labels, ax=ax, yerr=False, edges=False, lw=3, zorder=10
+        )
+
+        ax.axhline(0, ls="--", color="k", zorder=1)  # type: ignore
+
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(ylim)  # type: ignore
+        ax.legend(loc="best", ncol=2)  # type: ignore
+        ax.set_xlabel(xlabel_enu)  # type: ignore
+        ax.set_ylabel(r"Principal Component Weight ($\mathrm{\sqrt{\lambda_n} \hat{e}_n}$)")  # type: ignore
+
+        # icarus_preliminary(ax)  # type: ignore
+
+        place_header(
+            ax,  # type: ignore
+            f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})",
+            xy=(1.0, 1.0),
+            ha="right",
+        )
+
+        if output_dir is not None:
+            prefix = f"{horn}_{nu}"
+            fig_name = f"{prefix}_pca_systematic_shift"
+            tex_label = fig_name
+            tex_caption = ""
+
+            save_figure(fig, fig_name, output_dir, tex_caption, tex_label)  # type: ignore
 
         plt.close(fig)

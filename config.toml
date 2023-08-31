@@ -118,6 +118,7 @@ hadron_uncertainties = true
 hadron_uncertainties_meson = true
 hadron_uncertainties_meson_only = true
 pca_variances = true
+pca_components = true
 hadron_correlation_matrices = true
 beam_uncertainties = true
 beam_correlation_matrices = true

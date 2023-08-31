@@ -346,7 +346,6 @@ def create_figure(
 
     return fig
 
-
 def plot_beam_systematic_shifts(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
@@ -419,3 +418,4 @@ def plot_beam_systematic_shifts(
             save_figure(fig, fig_name, output_dir, tex_caption, tex_label)  # type: ignore
 
         plt.close(fig)
+
