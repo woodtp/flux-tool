@@ -19,6 +19,7 @@ mplhep = "^0.3.28"
 hist = "^2.6.3"
 scipy = "^1.11.1"
 rich = "^13.5.2"
+pytest = "^7.4.1"
 
 [tool.poetry.scripts]
 flux_tool = "flux_tool.main:main"
