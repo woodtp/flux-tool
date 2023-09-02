@@ -5,6 +5,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
+from ROOT import TH1D  # type: ignore
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
@@ -18,6 +19,7 @@ def plot_hadron_fractional_uncertainties(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
     ylim: tuple[float, float] = (0, 0.2),
+    flux_overlay: bool = True,
 ) -> None:
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True)
@@ -67,13 +69,16 @@ def plot_hadron_fractional_uncertainties(
             ylim,
         )
 
+        if flux_overlay:
+            create_flux_overlay(flux)
+
         if output_dir is not None:
             prefix = f"{horn}_{nu}"
             fig_name = f"{prefix}_hadron_fractional_uncertainties"
             tex_label = fig_name
             tex_caption = ""
 
-            save_figure(fig, fig_name, output_dir, tex_caption, tex_label)
+            save_figure(fig, fig_name, output_dir, tex_caption, tex_label)  # type: ignore
 
         plt.close(fig)
 
@@ -346,6 +351,39 @@ def create_figure(
 
     return fig
 
+
+def create_flux_overlay(flux: TH1D) -> None:
+    ax1 = plt.gca()
+    ax2 = ax1.twinx()
+
+    max = flux.GetMaximum()
+
+    h = hep.histplot(
+        flux,
+        ax=ax2,
+        histtype="fill",
+        yerr=False,
+        label=("Flux Shape (A.U.)"),
+        ls="-.",
+        color="gray",
+        edgecolor="k",
+        lw=3,
+        zorder=0,
+        alpha=0.3,
+    )
+
+    handles, labels = ax1.get_legend_handles_labels()
+
+    handles += [h[0][0]]
+    labels += ["Flux Shape (A.U.)"]
+
+    ax1.legend(handles, labels, ncol=2, loc="upper center", fontsize=26)
+
+    ax2.set_ylim(0, 1.4 * max)
+
+    ax2.get_yaxis().set_visible(False)
+
+
 def plot_beam_systematic_shifts(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
@@ -418,4 +456,3 @@ def plot_beam_systematic_shifts(
             save_figure(fig, fig_name, output_dir, tex_caption, tex_label)  # type: ignore
 
         plt.close(fig)
-
