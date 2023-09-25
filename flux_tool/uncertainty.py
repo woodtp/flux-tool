@@ -25,7 +25,7 @@ def flux_uncertainty(cov: pd.DataFrame, total_flux: float) -> float:
 
 
 def ratio_uncertainty(
-    cov: pd.DataFrame, total_neutrino1_flux: float, total_neutrino2_flux: float
+    cov: pd.DataFrame, total_nue_flux: float, total_numu_flux: float
 ) -> float:
     reordered_mat = cov.stack("neutrino_mode").swaplevel(i=1, j=2).sort_index()
     if reordered_mat is None:
@@ -35,15 +35,15 @@ def ratio_uncertainty(
 
     total = 0.0
     for (nu1, nu2), mat in mat_groups:  # type: ignore
-        cov_sum = np.array(mat).sum()
+        cov_sum = mat.sum().sum()
         if nu1 in ["nue", "nuebar"] and nu2 in ["nue", "nuebar"]:
-            div = total_neutrino1_flux**-2
+            div = total_nue_flux**-2
             coeff = 1
         elif nu1 in ["numu", "numubar"] and nu2 in ["numu", "numubar"]:
-            div = total_neutrino2_flux**-2
+            div = total_numu_flux**-2
             coeff = 1
         else:
-            div = 1 / (total_neutrino1_flux * total_neutrino2_flux)
+            div = 1 / (total_nue_flux * total_numu_flux)
             coeff = -1
         total += coeff * cov_sum * div
 

@@ -255,8 +255,8 @@ class FluxSystematicsAnalysis:
 
             ratio_uncert = uncertainty.ratio_uncertainty(
                 cov=cov_mat,
-                total_neutrino1_flux=total_nue_flux,
-                total_neutrino2_flux=total_numu_flux,
+                total_nue_flux=total_nue_flux,
+                total_numu_flux=total_numu_flux,
             )
 
             nue_uncert = uncertainty.flux_uncertainty(
@@ -301,23 +301,72 @@ class FluxSystematicsAnalysis:
         return pd.concat(df_list, keys=["fhc", "rhc"]).droplevel(level=-1)
 
     @property
-    def total_table(self) -> pd.DataFrame:
-        bin_combos = itertools.combinations(self.bin_edges["numu"], 2)
-        df_list = {}
-        for combo in bin_combos:
-            df_list[combo] = self.total_uncertainties_in_range(*combo)
+    def total_uncertainty_table(self) -> pd.DataFrame:
+        enu_min, enu_max = 0, 20
 
-        df1 = (
-            pd.concat(df_list.values(), keys=df_list.keys())
-            .swaplevel(i=2, j=1)
-            .swaplevel(i=0, j=1)
-            .sort_index()
-        )
+        uncertainties = [
+            self.total_uncertainties_in_range(
+                enu_min,
+                enu_max,
+                self.hadron_systematics.covariance_matrices.loc["absolute", "total"],
+            )
+        ]
 
-        if df1 is None:
-            raise ValueError()
+        if self.beam_systematics_is_initialized:
+            uncertainties += [
+                self.total_uncertainties_in_range(
+                    enu_min,
+                    enu_max,
+                    self.beam_systematics.total_covariance_matrix.loc["absolute"],
+                ),
+                self.total_uncertainties_in_range(
+                    enu_min,
+                    enu_max,
+                    self.beam_systematics.covariance_matrices.loc[
+                        "absolute", "beam_power"
+                    ],
+                ),
+            ]
 
-        return df1
+        uncertainties += [
+            self.total_uncertainties_in_range(
+                enu_min, enu_max, self.stat_uncert_matrix
+            ),
+            self.total_uncertainties_in_range(enu_min, enu_max),
+        ]
+
+        table_keys = [
+            "Hadron",
+            "Beamline",
+            "Beam Power Upgrade",
+            "Statistical",
+            "Total",
+        ]
+
+        uncert_table = pd.concat(uncertainties, keys=table_keys)
+
+        uncert_table.columns = [
+            r"$\nu_e$",
+            r"$\bar{\nu}_e$",
+            r"$\nu_e + \bar{\nu}_e$",
+            r"$\nu_\mu$",
+            r"$\bar{\nu}_\mu$",
+            r"$\nu_\mu + \bar{\nu}_\mu$",
+            r"$\frac{\nu_e + \bar{\nu}_e}{\nu_\mu + \bar{\nu}_\mu}$",
+        ]
+
+        return uncert_table
+
+    @property
+    def total_uncertainty_table_latex(self) -> str:
+        table = self.total_uncertainty_table
+
+        table *= 100  # convert to percentage
+        table_str = table.to_latex(float_format="%.2f")
+        table_str = table_str.replace("fhc", "FHC")
+        table_str = table_str.replace("rhc", "RHC")
+
+        return table_str
 
     @staticmethod
     def _export_matrices(
