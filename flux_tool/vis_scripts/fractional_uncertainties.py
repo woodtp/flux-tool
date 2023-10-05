@@ -436,7 +436,7 @@ def plot_beam_systematic_shifts(
         ax.set_ylim(-0.1, 0.1)  # type: ignore
         ax.legend(loc="best")  # type: ignore
         ax.set_xlabel(xlabel_enu)  # type: ignore
-        ax.set_ylabel(r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}}$")  # type: ignore
+        ax.set_ylabel(r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}$")  # type: ignore
 
         # icarus_preliminary(ax)  # type: ignore
 
