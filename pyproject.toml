@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flux_tool"
-version = "1.0.0"
+version = "1.0.5"
 description = "Package used to study the output histograms from PPFX"
 authors = ["Anthony Wood <apwood@uh.edu>"]
 readme = "README.md"
