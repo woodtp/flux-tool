@@ -1381,6 +1381,21 @@ docs-screenshots = ["altair (==5.0.1)", "ipython (==8.14.0)", "ipywidgets (==8.0
 test = ["coverage", "pytest (>=7.0)", "pytest-check-links (>=0.7)", "pytest-console-scripts", "pytest-cov", "pytest-jupyter (>=0.5.3)", "pytest-timeout", "pytest-tornasync", "requests", "requests-cache", "virtualenv"]
 
 [[package]]
+name = "jupyterlab-lsp"
+version = "5.0.0rc0"
+description = "Coding assistance for JupyterLab with Language Server Protocol"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "jupyterlab-lsp-5.0.0rc0.tar.gz", hash = "sha256:f1a95e6b953fb4db7790db0d1a1354b8cf96af6d00e34a9e3a08920234d40254"},
+    {file = "jupyterlab_lsp-5.0.0rc0-py3-none-any.whl", hash = "sha256:1affadf0b24594c82db6eec32e09b1557d0a817dd91f2e5438626dd9776d7cbb"},
+]
+
+[package.dependencies]
+jupyter-lsp = ">=2.0.0"
+jupyterlab = ">=4.0.6,<5.0.0a0"
+
+[[package]]
 name = "jupyterlab-pygments"
 version = "0.2.2"
 description = "Pygments theme using JupyterLab CSS variables"
@@ -1849,6 +1864,20 @@ files = [
 ]
 
 [[package]]
+name = "nodeenv"
+version = "1.8.0"
+description = "Node.js virtual environment builder"
+optional = false
+python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
+files = [
+    {file = "nodeenv-1.8.0-py2.py3-none-any.whl", hash = "sha256:df865724bb3c3adc86b3876fa209771517b0cfe596beff01a92700e0e8be4cec"},
+    {file = "nodeenv-1.8.0.tar.gz", hash = "sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2"},
+]
+
+[package.dependencies]
+setuptools = "*"
+
+[[package]]
 name = "notebook-shim"
 version = "0.2.3"
 description = "A shim layer for notebook traits and config"
@@ -2268,6 +2297,24 @@ files = [
 
 [package.extras]
 diagrams = ["jinja2", "railroad-diagrams"]
+
+[[package]]
+name = "pyright"
+version = "1.1.327"
+description = "Command line wrapper for pyright"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyright-1.1.327-py3-none-any.whl", hash = "sha256:3462cda239e9140276238bbdbd0b59d77406f1c2e14d8cb8c20c8e25639c6b3c"},
+    {file = "pyright-1.1.327.tar.gz", hash = "sha256:ba74148ad64f22020dbbed6781c4bdb38ecb8a7ca90dc3c87a4f08d1c0e11592"},
+]
+
+[package.dependencies]
+nodeenv = ">=1.6.0"
+
+[package.extras]
+all = ["twine (>=3.4.1)"]
+dev = ["twine (>=3.4.1)"]
 
 [[package]]
 name = "pytest"
@@ -3111,4 +3158,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.*"
-content-hash = "a64b939d07c2a37ee19f0fd7b4eb1c624937e0acb63504d3bc620cf2386403c1"
+content-hash = "4e4f71fb11d28edfe591f66970ab512a42b968a5ca46ac86583b9ddfa39837ce"
