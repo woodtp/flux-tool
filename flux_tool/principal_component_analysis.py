@@ -50,11 +50,22 @@ class PCA:
         # reversing the order so that largest eigenvalue comes first
         eigenvalues, eigenvectors = eigenvalues[::-1], eigenvectors[:, ::-1]
 
+        # DEBUG
+        # quantify magnitude of negative eigenvalues
+        # max_eval = max(eigenvalues)
+        # min_eval = min(eigenvalues)
+        # print(f"|{min_eval}|/{max_eval}={np.abs(min_eval)/max_eval}")
+
+        eigenvectors = eigenvectors[:, eigenvalues > 0]
+        eigenvalues = eigenvalues[eigenvalues > 0]
+
         fractional_eigenvalues = eigenvalues / eigenvalues.sum()
 
         cumulative_sum = np.cumsum(fractional_eigenvalues)
 
-        selected_components = (cumulative_sum <= self.threshold) & (eigenvalues > 0)
+        print(fractional_eigenvalues)
+
+        selected_components = cumulative_sum <= self.threshold
 
         self.eigenvectors = eigenvectors[:, selected_components]
         self.eigenvalues = eigenvalues[selected_components]
