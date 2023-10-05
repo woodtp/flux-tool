@@ -63,8 +63,6 @@ class PCA:
 
         cumulative_sum = np.cumsum(fractional_eigenvalues)
 
-        print(fractional_eigenvalues)
-
         selected_components = cumulative_sum <= self.threshold
 
         self.eigenvectors = eigenvectors[:, selected_components]
