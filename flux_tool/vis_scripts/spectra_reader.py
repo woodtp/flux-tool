@@ -1,13 +1,17 @@
 from functools import cached_property
 from itertools import product
 from pathlib import Path
+from typing import Iterable
 
+from numpy.typing import NDArray
 import uproot
 
 
 class SpectraReader:
-    def __init__(self, products_file: Path | str):
+    def __init__(self, products_file: Path | str, binning: dict[str, NDArray]):
         self._f = uproot.open(products_file)
+
+        self.binning = binning
 
         horns_nus = [
             key.split("_")[0].split("/")

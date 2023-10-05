@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import Any, Optional
 
@@ -9,9 +10,23 @@ from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import neutrino_labels
 
 
-def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
+def plot_matrices(
+    matrices: dict[str, Any], horn_currents: list[str], nbins: dict[str, int]
+):
+    bin_ordering = [nbins["nue"], nbins["nuebar"], nbins["numu"], nbins["numubar"]]
+
+    if len(horn_currents) == 2:
+        bin_ordering += bin_ordering[:-1]
+
+    line_positions = list(itertools.accumulate(bin_ordering))
+
+    nue = neutrino_labels["nue"]
+    nueb = neutrino_labels["nuebar"]
+    numu = neutrino_labels["numu"]
+    numub = neutrino_labels["numubar"]
+
     for key, mat in matrices.items():
-        fig, ax = plt.subplots(layout="constrained")
+        fig, ax = plt.subplots()  # layout="constrained")
 
         heatmap_kwargs = {
             "ax": ax,
@@ -39,11 +54,6 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             labelleft=False,
             which="both",
         )
-
-        nue = neutrino_labels["nue"]
-        nueb = neutrino_labels["nuebar"]
-        numu = neutrino_labels["numu"]
-        numub = neutrino_labels["numubar"]
 
         kwargs = {
             "transform": ax.transAxes,  # type: ignore
@@ -81,6 +91,11 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
             for (x, y), nu in zip(nu_coords, neutrino_labels.values()):
                 ax.text(x, y, nu, ha="right", va="center", **kwargs)  # type: ignore
                 ax.text(y, x, nu, ha="center", va="top", **kwargs)  # type: ignore
+
+            for pos in line_positions:
+                lw = 1
+                ax.axvline(pos, color="k", lw=lw)
+                ax.axhline(pos, color="k", lw=lw)
         else:
             ax.text(0.245, -0.085, "FHC", ha="center", va="top", **kwargs)  # type: ignore
             ax.text(0.765, -0.085, "RHC", ha="center", va="top", **kwargs)  # type: ignore
@@ -107,6 +122,11 @@ def plot_matrices(matrices: dict[str, Any], horn_currents: list[str]):
                 ax.text(x, y, nu, ha="right", va="center", **kwargs2)  # type: ignore
                 ax.text(y, x, nu, ha="center", va="top", **kwargs)  # type: ignore
 
+            for i, pos in enumerate(line_positions):
+                lw = 2 if i == 3 else 1
+                ax.axvline(pos, color="k", lw=lw)
+                ax.axhline(pos, color="k", lw=lw)
+
         yield key, fig
 
 
@@ -119,7 +139,9 @@ def plot_hadron_correlation_matrices(
     horn_currents = reader.horn_current
     matrices = reader.hadron_correlation_matrices
 
-    figures = plot_matrices(matrices, horn_currents)
+    nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
+
+    figures = plot_matrices(matrices, horn_currents, nbins)
 
     if output_dir is not None:
         for key, fig in figures:
@@ -140,7 +162,9 @@ def plot_beam_correlation_matrices(
     horn_currents = reader.horn_current
     matrices = reader.beam_correlation_matrices
 
-    figures = plot_matrices(matrices, horn_currents)
+    nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
+
+    figures = plot_matrices(matrices, horn_currents, nbins)
 
     if output_dir is not None:
         for key, fig in figures:

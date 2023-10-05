@@ -2,10 +2,11 @@ import logging
 import tarfile
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import matplotlib.pyplot as plt
 import mplhep as hep
+from numpy.typing import NDArray
 
 from flux_tool.vis_scripts.covariance import (plot_beam_correlation_matrices,
                                               plot_hadron_correlation_matrices)
@@ -28,10 +29,11 @@ def plot_all(
     products_file: Path | str,
     output_dir: Path,
     plot_opts: dict[str, Any],
+    binning: dict[str, NDArray],
 ):
     plt.style.use(style)
 
-    reader = SpectraReader(products_file)
+    reader = SpectraReader(products_file, binning)
 
     if plot_opts["draw_label"]:
         exp_label = partial(

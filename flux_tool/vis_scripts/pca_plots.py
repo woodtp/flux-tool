@@ -1,7 +1,7 @@
 from functools import reduce
 from itertools import product
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -89,10 +89,7 @@ def plot_hadron_systs_and_pca_variances(
 
         pcs_variances = [pc * pc for pc in pcs]
 
-        pc_labels = [
-            f"$\\mathrm{{\\lambda_{i}}}$ ({var*100:0.1f}%)"
-            for i, var in enumerate(eigenvals)
-        ]
+        pc_labels = [f"PC{i} ({var*100:0.1f}%)" for i, var in enumerate(eigenvals, 1)]
 
         if ver == "daughter":
             actual = "projectile"
@@ -229,8 +226,12 @@ def plot_pca_systematic_shifts(
     n_comps = 4
 
     for horn, nu in reader.horns_and_nus:
-        comps = [shifts[f"hpc_{n}_{horn}_{nu}"] for n in range(n_comps)]
-        labels = [f"$\\mathrm{{\\lambda_{n}}}$" for n in range(n_comps)]
+        comps: list[Any] = []
+        labels: list[str] = []
+
+        for n in range(n_comps):
+            comps.append(shifts[f"hpc_{n}_{horn}_{nu}"])
+            labels.append(f"PC{n+1}")
 
         fig, ax = plt.subplots(layout="constrained", figsize=(11, 11))
 
