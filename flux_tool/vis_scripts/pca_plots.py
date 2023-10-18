@@ -5,11 +5,49 @@ from typing import Any, Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
+import numpy as np
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, ppfx_labels, xlabel_enu)
+
+
+def scree_plot(reader: SpectraReader, output_dir: Optional[Path] = None):
+    eigenvalues, _ = reader.pca_eigenvalues.to_numpy()  # type: ignore
+    x = [i for i in range(1, len(eigenvalues) + 1)]
+
+    cumul = np.cumsum(eigenvalues)
+
+    fig, ax = plt.subplots()
+
+    ax.set_box_aspect(1)
+
+    ax.set_yscale("log")
+    ax.set_xlabel("PCA Component Number")
+    ax.set_ylabel("Fraction of Total Variance")
+    # ax2 = ax.twinx()
+    ax.scatter(x, eigenvalues, label="Eigenvalue")
+    # ax2.scatter(x, cumul, color="C1")
+    # ax2.set_ylabel("Cumulative Sum")
+    idx = np.where(cumul <= 0.99)[0][-1]
+
+    ax.axvline(
+        idx,
+        label=f"$\\mathrm{{\\lambda_{{{idx}}}}}$, 99% Explained Variance",
+        c="k",
+        ls="--",
+    )
+
+    ax.legend(loc="best")
+    if output_dir is not None:
+        file_stem = "pca_scree_plot"
+        tex_caption = ""
+        tex_label = "scree_plot"
+
+        save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+    plt.close(fig)
 
 
 def plot_hadron_systs_and_pca_variances(
@@ -97,8 +135,16 @@ def plot_hadron_systs_and_pca_variances(
             actual = "daughter"
 
         fig, axs = plt.subplots(
-            1, 2, sharey=True, figsize=(26, 14), gridspec_kw={"wspace": 0.03}
+            1,
+            2,
+            sharey=True,
+            figsize=(20, 10),
+            gridspec_kw={"wspace": 0.03}
+            # 1, 2, sharey=True, figsize=(26, 14), gridspec_kw={"wspace": 0.03}
         )
+
+        for ax in axs:
+            ax.set_box_aspect(1)
 
         hep.histplot(
             ax=axs[0],
@@ -176,7 +222,7 @@ def plot_hadron_systs_and_pca_variances(
         for ax in axs:
             ax.set_xlim(*xlim)
             ax.set_ylim(*ylim)
-            ax.legend(loc="upper center", fontsize=24, ncol=2)
+            ax.legend(loc="upper center", columnspacing=0.8, fontsize=21, ncol=2)
             ax.set_xlabel(xlabel_enu)
 
         axs[0].set_ylabel(
@@ -233,7 +279,9 @@ def plot_pca_systematic_shifts(
             comps.append(shifts[f"hpc_{n}_{horn}_{nu}"])
             labels.append(f"PC{n+1}")
 
-        fig, ax = plt.subplots(layout="constrained", figsize=(11, 11))
+        fig, ax = plt.subplots()
+
+        ax.set_box_aspect(1)
 
         hep.histplot(
             H=comps, label=labels, ax=ax, yerr=False, edges=False, lw=3, zorder=10

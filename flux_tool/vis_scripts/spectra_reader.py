@@ -44,6 +44,7 @@ class SpectraReader:
         self.parent_spectra
         self.pot
         self.ppfx_correction
+        self.pca_eigenvalues
         self.principal_components
         self.universes
 
@@ -155,6 +156,10 @@ class SpectraReader:
                 cycle=False, filter_name="*hpc_*"  # type: ignore
             )
         }
+
+    @cached_property
+    def pca_eigenvalues(self):
+        return self._f["pca/heigenvals_frac"]
 
     @cached_property
     def universes(self):

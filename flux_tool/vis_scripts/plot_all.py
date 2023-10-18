@@ -2,7 +2,7 @@ import logging
 import tarfile
 from functools import partial
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -15,11 +15,11 @@ from flux_tool.vis_scripts.flux_prediction import (
 from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_beam_fractional_uncertainties, plot_beam_systematic_shifts,
     plot_hadron_fractional_uncertainties,
-    plot_hadron_fractional_uncertainties_mesinc_breakout,
-    plot_hadron_fractional_uncertainties_mesinc_only)
+    plot_hadron_fractional_uncertainties_mesinc_breakout, plot_uncertainties)
 from flux_tool.vis_scripts.parent_spectra import plot_parents
 from flux_tool.vis_scripts.pca_plots import (
-    plot_hadron_systs_and_pca_variances, plot_pca_systematic_shifts)
+    plot_hadron_systs_and_pca_variances, plot_pca_systematic_shifts,
+    scree_plot)
 from flux_tool.vis_scripts.ppfx_universes import plot_ppfx_universes
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import style
@@ -80,20 +80,30 @@ def plot_all(
 
     if enabled_plots["hadron_uncertainties"]:
         logging.info("Plotting hadron uncertainties...")
-        plot_hadron_fractional_uncertainties(
-            reader, output_dir / "hadron_uncertainties", xlim, (0, 0.20)
+        plot_uncertainties(
+            reader,
+            plot_hadron_fractional_uncertainties,
+            output_dir / "hadron_uncertainties",
+            xlim,
         )
 
     if enabled_plots["hadron_uncertainties_meson"]:
         logging.info("Plotting hadron uncertainties (mesinc)...")
-        plot_hadron_fractional_uncertainties_mesinc_breakout(
-            reader, output_dir / "hadron_uncertainties/meson_breakout", xlim
+        plot_uncertainties(
+            reader,
+            plot_hadron_fractional_uncertainties_mesinc_breakout,
+            output_dir / "hadron_uncertainties/meson_only",
+            xlim,
         )
     if enabled_plots["hadron_uncertainties_meson_only"]:
         logging.info("Plotting hadron uncertainties (mesinc only)...")
-        plot_hadron_fractional_uncertainties_mesinc_only(
-            reader, output_dir / "hadron_uncertainties/meson_only", xlim
-        )
+        # plot_hadron_fractional_uncertainties_mesinc_only(
+        #     reader, output_dir / "hadron_uncertainties/meson_only", xlim
+        # )
+
+    if enabled_plots["pca_scree_plot"]:
+        logging.info("Plotting Eigenvalues Scree Plot")
+        scree_plot(reader, output_dir / "pca")
 
     if enabled_plots["pca_variances"]:
         logging.info("Plotting PCA variances...")
@@ -101,12 +111,18 @@ def plot_all(
 
     if enabled_plots["pca_components"]:
         logging.info("Plotting princpal components...")
-        plot_pca_systematic_shifts(reader, output_dir / "pca/components", xlim, (-0.12, 0.12))
+        plot_pca_systematic_shifts(
+            reader, output_dir / "pca/components", xlim, (-0.12, 0.12)
+        )
 
     if enabled_plots["beam_uncertainties"]:
         logging.info("Plotting beam uncertainties...")
-        plot_beam_fractional_uncertainties(
-            reader, output_dir / "beam_uncertainties", xlim, (0, 0.06)
+        plot_uncertainties(
+            reader,
+            plot_beam_fractional_uncertainties,
+            output_dir / "beam_uncertainties",
+            xlim,
+            (0, 0.06),
         )
 
     if enabled_plots["hadron_correlation_matrices"]:

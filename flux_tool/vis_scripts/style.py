@@ -37,7 +37,7 @@ style = {
     "legend.borderpad": 0.5,
     "legend.frameon": False,
     "mathtext.fontset": "stix",
-    "savefig.transparent": False,
+    "savefig.transparent": True,
     "xaxis.labellocation": "center",
     "yaxis.labellocation": "center",
     "xtick.labelsize": "small",
@@ -118,6 +118,30 @@ ppfx_labels = {
     "total": "Total",
 }
 
+ppfx_mesinc_labels = {
+    "mesinc_projectile_K0": r"$\mathrm{K^0 + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_Km": r"$\mathrm{K^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_projectile_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_daughter_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
+    "mesinc_daughter_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
+    "mesinc_daughter_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
+    "mesinc_daughter_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
+    "mesinc_daughter_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
+}
+
+ppfx_colors = {
+    k: f"C{i}"
+    for i, k in enumerate(ppfx_labels)
+    if "projectile" not in k and "daughter" not in k
+}
+ppfx_mesinc_colors = {
+    k: f"C{i}"
+    for i, k in enumerate(ppfx_mesinc_labels)
+    if "projectile" in k or "daughter" in k
+}
+
 beam_syst_labels = {
     "beam_shift_y_plus": r"Beam Shift $y+1$ mm",
     "beam_shift_y_minus": r"Beam Shift $y-1$ mm",
@@ -134,6 +158,10 @@ beam_syst_labels = {
     "water_layer": r"Horn Water Layer $\pm 1$ mm",
     "beam_div": r"54 $\mathrm{\mu}$rad Beam Divergence",
     "total": "Total",
+}
+
+beam_syst_colors = {
+    k: f"C{i}" for i, k in enumerate(beam_syst_labels) if "total" not in k
 }
 
 
@@ -153,11 +181,7 @@ def get_prop_cycler() -> Cycler:
 
 
 def place_header(
-    ax: Axes,
-    header: str,
-    xy: tuple[float, float] = (0.0, 1.0),
-    ha="left",
-    **kwargs
+    ax: Axes, header: str, xy: tuple[float, float] = (0.0, 1.0), ha="left", **kwargs
 ) -> None:
     ax.annotate(
         header,
