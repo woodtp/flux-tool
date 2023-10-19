@@ -1,7 +1,7 @@
 from functools import partial
 from itertools import product
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -9,10 +9,9 @@ import numpy as np
 
 from flux_tool.vis_scripts.helper import create_ylabel_with_scale, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
-from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
-                                         place_header, xlabel_enu, ylabel_flux)
+from flux_tool.vis_scripts.style import (neutrino_labels, xlabel_enu,
+                                         ylabel_flux)
 
-from matplotlib.axes import Axes
 
 def plot_flux_prediction(
     reader: SpectraReader,
@@ -234,7 +233,7 @@ def plot_flux_uncorrected_logarithmic(
         )
 
         if output_dir is not None:
-            file_stem = f"{horn}_flux_prediction_log"
+            file_stem = f"{horn}_uncorrected_flux_log"
             tex_caption = ""
             tex_label = file_stem
             save_figure(fig, file_stem, output_dir, tex_caption, tex_label)
