@@ -77,11 +77,15 @@ def plot_parents(
             for x in parents[nu]
         ]
 
-        fig, ax1 = plt.subplots(constrained_layout=True)
+        fig, ax1 = plt.subplots()
+
+        ax1.set_box_aspect(1)
 
         ax_ypos = 0.20 if "nue" in nu else 0.10
 
         axins = ax1.inset_axes((0.50, ax_ypos, 0.40, 0.40))  # type: ignore
+
+        axins.set_box_aspect(1)
 
         axs = [ax1, axins]
 
@@ -94,7 +98,9 @@ def plot_parents(
         ax1.set_ylabel(create_ylabel_with_scale(int(power)))  # type: ignore
         ax1.set_xlabel(xlabel_enu)  # type: ignore
 
-        place_header(ax1, f"NuMI Simulation ({horn.upper()})")  # type: ignore
+        # place_header(ax1, f"NuMI Simulation ({horn.upper()})")  # type: ignore
+
+        hep.label.exp_label(exp="NuMI", llabel=f"Simulation ({horn.upper()})", rlabel="")
 
         for ax in axs:
             hep.histplot(

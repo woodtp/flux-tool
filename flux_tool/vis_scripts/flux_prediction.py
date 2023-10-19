@@ -68,7 +68,9 @@ def plot_flux_prediction(
             f"Uncorrected {neutrino_labels[f'{nu}bar']} Flux",
         ]
 
-        fig, ax = plt.subplots(layout="constrained")  # , figsize=(12,12))
+        fig, ax = plt.subplots()  # , figsize=(12,12))
+
+        ax.set_box_aspect(1)
 
         marker = "o" if nu == "numu" else "s"
 
@@ -190,6 +192,8 @@ def plot_flux_uncorrected_logarithmic(
         )
 
         ax1, ax2 = axs
+
+        ax1.set_box_aspect(1)
 
         hep.histplot(
             ax=ax1,

@@ -53,6 +53,8 @@ def plot_ppfx_universes(
 
         fig, ax = plt.subplots()
 
+        ax.set_box_aspect(1)
+
         ax.plot([], [], " ", label="PPFX Input")
 
         # nu_label = neutrino_labels[nu]
@@ -119,7 +121,12 @@ def plot_ppfx_universes(
             loc="best",
         )
 
-        place_header(ax, f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})")
+        # place_header(ax, f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})")
+        hep.label.exp_label(
+            exp="NuMI",
+            llabel=f"Simulation ({horn.upper()} {neutrino_labels[nu]})",
+            rlabel="",
+        )
 
         # place_header(ax, "ICARUS Preliminary", (1.0, 1.0), ha="right")
 
