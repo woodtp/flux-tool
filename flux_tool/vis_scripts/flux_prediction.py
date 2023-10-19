@@ -1,3 +1,4 @@
+from functools import partial
 from itertools import product
 from pathlib import Path
 from typing import Callable, Optional
@@ -11,12 +12,13 @@ from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
                                          place_header, xlabel_enu, ylabel_flux)
 
+from matplotlib.axes import Axes
 
 def plot_flux_prediction(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
-    exp_label: bool | Callable[[plt.Axes], None] = False,
+    label_drawer: Optional[partial] = None,
 ):
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -34,12 +36,8 @@ def plot_flux_prediction(
         scale_factor = 10**power
 
         nominal = [
-            reader[
-                f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"
-            ].to_pyroot(),  # type: ignore
-            reader[
-                f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"
-            ].to_pyroot(),  # type: ignore
+            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"].to_pyroot(),
+            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"].to_pyroot(),
         ]
 
         for h in flux:
@@ -102,23 +100,21 @@ def plot_flux_prediction(
             lw=2,
         )
 
-        if exp_label:
-            exp_label(ax=ax)
-        # icarus_preliminary(ax, fontsize=24)  # type: ignore
-        # place_header(ax, f"NuMI Simulation ({horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
+        if label_drawer is not None:
+            label_drawer(ax)
 
-        ax.set_ylabel(ylabel)  # type: ignore
-        ax.set_xlabel(xlabel_enu)  # type: ignore
-        ax.legend(loc="best", fontsize=20)  # type: ignore
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel_enu)
+        ax.legend(loc="best", fontsize=23)
 
-        ax.set_xlim(*xlim)  # type: ignore
+        ax.set_xlim(*xlim)
 
         if output_dir is not None:
             prefix = f"{horn}_{nu}"
             file_stem = f"{prefix}_flux_prediction"
             tex_caption = ""
             tex_label = file_stem
-            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)
 
         plt.close(fig)
 
@@ -193,7 +189,8 @@ def plot_flux_uncorrected_logarithmic(
 
         ax1, ax2 = axs
 
-        ax1.set_box_aspect(1)
+        # ax1.set_box_aspect(1)
+        # ax2.set_box_aspect(1)
 
         hep.histplot(
             ax=ax1,
@@ -229,13 +226,17 @@ def plot_flux_uncorrected_logarithmic(
         ax2.axhline(1, ls="--", lw=2, color="k")
         ax2.set_ylabel(" / ".join(ylabel))
 
-        # icarus_preliminary(ax1, fontsize=24)
-        place_header(ax1, f"NuMI Simulation (Uncorrected, {horn.upper()})", (1.0, 1.0), ha="right")  # type: ignore
+        hep.label.exp_label(
+            exp="NuMI",
+            llabel=f"Simulation ({horn.upper()}, Uncorrected)",
+            rlabel="",
+            ax=ax1,
+        )
 
         if output_dir is not None:
             file_stem = f"{horn}_flux_prediction_log"
             tex_caption = ""
             tex_label = file_stem
-            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)
 
         plt.close(fig)

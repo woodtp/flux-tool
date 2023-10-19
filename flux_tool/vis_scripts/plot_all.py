@@ -36,14 +36,14 @@ def plot_all(
     reader = SpectraReader(products_file, binning)
 
     if plot_opts["draw_label"]:
-        exp_label = partial(
+        label_drawer = partial(
             hep.label.exp_label,
             exp=plot_opts["experiment"],
             llabel=plot_opts["stage"],
             rlabel="",
         )
     else:
-        exp_label = False
+        label_drawer = None
 
     xlim: tuple[float, float] = plot_opts["xlim"]
 
@@ -63,7 +63,7 @@ def plot_all(
     if enabled_plots["flux_prediction"]:
         logging.info("Plotting flux prediction...")
         plot_flux_prediction(
-            reader, output_dir / "flux_spectra/flux_prediction", xlim, exp_label
+            reader, output_dir / "flux_spectra/flux_prediction", xlim, label_drawer
         )
 
     if enabled_plots["flux_prediction_parent_spectra"]:

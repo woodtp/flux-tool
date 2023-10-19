@@ -1,4 +1,3 @@
-from itertools import product
 from pathlib import Path
 from typing import Optional
 
@@ -8,8 +7,7 @@ import numpy as np
 
 from flux_tool.vis_scripts.helper import create_ylabel_with_scale, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
-from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
-                                         xlabel_enu)
+from flux_tool.vis_scripts.style import neutrino_labels, xlabel_enu
 
 
 def plot_ppfx_universes(
