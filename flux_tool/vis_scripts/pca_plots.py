@@ -1,5 +1,5 @@
 from functools import reduce
-from itertools import product
+from itertools import product, repeat
 from pathlib import Path
 from typing import Any, Optional
 
@@ -9,8 +9,8 @@ import numpy as np
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
-from flux_tool.vis_scripts.style import (icarus_preliminary, neutrino_labels,
-                                         place_header, ppfx_labels, xlabel_enu)
+from flux_tool.vis_scripts.style import (neutrino_labels, place_header,
+                                         ppfx_labels, xlabel_enu)
 
 
 def scree_plot(reader: SpectraReader, output_dir: Optional[Path] = None):
@@ -39,11 +39,158 @@ def scree_plot(reader: SpectraReader, output_dir: Optional[Path] = None):
         ls="--",
     )
 
-    ax.legend(loc="best")
+    ax.legend(loc="best", fontsize=26)
     if output_dir is not None:
         file_stem = "pca_scree_plot"
         tex_caption = ""
         tex_label = "scree_plot"
+
+        save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+    plt.close(fig)
+
+
+def pca_mesinc_overlay(reader: SpectraReader, output_dir: Optional[Path] = None):
+    pcs = np.abs(
+        np.hstack(
+            [
+                reader["pca/principal_components/hpc_1_fhc_nue"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_fhc_nuebar"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_fhc_numu"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_fhc_numubar"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_rhc_nue"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_rhc_nuebar"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_rhc_numu"].to_numpy()[0],  # type: ignore
+                reader["pca/principal_components/hpc_1_rhc_numubar"].to_numpy()[0],  # type: ignore
+            ]
+        )
+    )
+
+    mesinc = np.sqrt(
+        np.diag(
+            reader.hadron_covariance_matrices["mesinc/hcov_mesinc"].to_numpy()[0]  # type: ignore
+        )
+    )
+
+    bin_lengths = {k: len(b) for k, b in reader.binning.items()}
+
+    x = [i for i in range(1, pcs.shape[0] + 1)]
+
+    fig, ax = plt.subplots(figsize=(12, 12))
+
+    ax.set_box_aspect(1)
+
+    ax.plot(x, mesinc, label=ppfx_labels["mesinc"], lw=3)
+    ax.plot(x, pcs, label="PC2 Overlay", ls="--", lw=3)
+
+    ax.set_ylabel(r"Fractional Uncertainty ($\mathrm{\sigma / \phi}$)")
+    ax.set_xlabel("Neutrino Flavor-Energy Bin No.")
+    ax.set_ylim(0, 0.2)
+
+    ax.legend(loc="upper left", fontsize=28)
+
+    ax.axvline(59, c="gray", lw=1.5, ls="--", ymax=0.90)
+
+    ax.text(57.5, 0.155, "FHC", fontweight="bold", horizontalalignment="right")
+    ax.text(60.5, 0.155, "RHC", fontweight="bold", horizontalalignment="left")
+
+    prev = 5
+    for i, x in enumerate(repeat(bin_lengths.items(), 2)):
+        for key, length in x:
+            ax.annotate(
+                neutrino_labels[key],
+                [prev, 0.125],
+                textcoords="offset points",
+                xytext=[0, 0],
+                va="bottom",
+                ha="left",
+            )
+            prev += length - 1
+            if i == 1 and key == "numubar":
+                continue
+            ax.axvline(prev - 4, c="gray", ls="--", lw=0.85, ymax=0.80)
+
+    if output_dir is not None:
+        file_stem = "pca_mesinc_overlay"
+        tex_caption = ""
+        tex_label = "mesinc_overlay"
+
+        save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+
+    plt.close(fig)
+
+
+def plot_top_principal_components(
+    reader: SpectraReader, output_dir: Optional[Path] = None, n_components: int = 4
+):
+    pcs = np.vstack(
+        [
+            np.hstack(
+                [
+                    reader[f"pca/principal_components/hpc_{i}_fhc_nue"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_fhc_nuebar"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_fhc_numu"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_fhc_numubar"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_rhc_nue"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_rhc_nuebar"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_rhc_numu"].to_numpy()[0],  # type: ignore
+                    reader[f"pca/principal_components/hpc_{i}_rhc_numubar"].to_numpy()[0],  # type: ignore
+                ]
+            )
+            for i in range(n_components)
+        ]
+    )
+
+    eigenvals, _ = reader["pca/heigenvals_frac"].to_numpy()  # type: ignore
+
+    eigenvals = eigenvals[:n_components]
+
+    x = [i for i in range(1, pcs.shape[1] + 1)]
+
+    labels = [f"PC{i} ({ev:0.1%})" for i, ev in enumerate(eigenvals, start=1)]
+
+    fig, ax = plt.subplots(figsize=(12,12))
+
+    ax.set_box_aspect(1)
+
+    ax.axhline(0, lw=0.5, ls="--", c="k")
+
+    ax.set_ylim(-0.25, 0.25)
+
+    ax.plot(x, pcs.T, label=labels)
+
+    ax.set_ylabel(r"Component Weight ($\mathrm{\sqrt{\lambda_k} \hat{u}_{k, i}}$)")
+    ax.set_xlabel(r"Neutrino Flavor-Energy Bin No., $\mathrm{i}$")
+
+    ax.legend(loc="upper center", ncol=2, columnspacing=0.8, fontsize=28)
+
+    ax.axvline(59, c="gray", lw=1.5, ls="--", ymax=0.90)
+
+    ax.text(57.5, 0.155, "FHC", fontweight="bold", horizontalalignment="right")
+    ax.text(60.5, 0.155, "RHC", fontweight="bold", horizontalalignment="left")
+
+    bin_lengths = {k: len(b) for k, b in reader.binning.items()}
+
+    prev = 5
+    for i, x in enumerate(repeat(bin_lengths.items(), 2)):
+        for key, length in x:
+            ax.annotate(
+                neutrino_labels[key],
+                [prev, 0.125],
+                textcoords="offset points",
+                xytext=[0, 0],
+                va="bottom",
+                ha="left",
+            )
+            prev += length - 1
+            if i == 1 and key == "numubar":
+                continue
+            ax.axvline(prev - 4, c="gray", ls="--", lw=0.85, ymax=0.80)
+
+    if output_dir is not None:
+        file_stem = "pca_top_components"
+        tex_caption = ""
+        tex_label = "top_components"
 
         save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
 
