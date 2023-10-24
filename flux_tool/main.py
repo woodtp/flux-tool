@@ -91,15 +91,6 @@ def main():
         description="Interpret PPFX output into a neutrino flux prediction with uncertainties",
     )
     parser.add_argument(
-        "-v",
-        "--verbose",
-        help="Be verbose",
-        action="store_const",
-        dest="loglevel",
-        const=logging.DEBUG,
-        default=logging.INFO,
-    )
-    parser.add_argument(
         "-c", "--config", help="specify the path to a toml configuration file"
     )
 
@@ -109,6 +100,24 @@ def main():
         dest="plot",
         metavar="PRODUCTS_FILE",
         help="Specify path to an existing ROOT file for which to produce plots",
+    )
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="",
+        action="store_const",
+        dest="loglevel",
+        const=logging.DEBUG,
+        default=logging.INFO,
+    )
+
+    parser.add_argument(
+        "-z",
+        "--enable-compression",
+        action="store_true",
+        dest="compression",
+        help="Enable compression of the output plots directory",
     )
 
     args = parser.parse_args()
@@ -131,7 +140,8 @@ def main():
 
     plot_all(products_file, cfg.plots_path, cfg.plot_opts, cfg.bin_edges)
 
-    compress_directory(cfg.plots_path)
+    if args.compression:
+        compress_directory(cfg.plots_path)
 
     logging.info("Done.")
 
