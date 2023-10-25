@@ -15,9 +15,6 @@ def plot_ppfx_universes(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0.0, 20.0),
 ):
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True, parents=True)
-
     nominal_flux = reader.nominal_spectra
     universes = reader.universes
     ppfx_correction = reader.ppfx_correction

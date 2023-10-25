@@ -133,9 +133,6 @@ def plot_matrices(
 def plot_hadron_correlation_matrices(
     reader: SpectraReader, output_dir: Optional[Path] = None
 ):
-    if output_dir is not None:
-        output_dir.mkdir(parents=True, exist_ok=True)
-
     horn_currents = reader.horn_current
     matrices = reader.hadron_correlation_matrices
 
@@ -156,9 +153,6 @@ def plot_hadron_correlation_matrices(
 def plot_beam_correlation_matrices(
     reader: SpectraReader, output_dir: Optional[Path] = None
 ):
-    if output_dir is not None:
-        output_dir.mkdir(parents=True, exist_ok=True)
-
     horn_currents = reader.horn_current
     matrices = reader.beam_correlation_matrices
 

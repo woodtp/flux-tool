@@ -19,9 +19,6 @@ def plot_flux_prediction(
     xlim: tuple[float, float] = (0, 20),
     label_drawer: Optional[partial] = None,
 ):
-    if output_dir is not None:
-        output_dir.mkdir(parents=True, exist_ok=True)
-
     flux_prediction = reader.flux_prediction
 
     for horn, nu in product(reader.horn_current, ["nue", "numu"]):
@@ -100,7 +97,7 @@ def plot_flux_prediction(
         )
 
         if label_drawer is not None:
-            label_drawer(ax)
+            label_drawer(ax=ax)
 
         ax.set_ylabel(ylabel)
         ax.set_xlabel(xlabel_enu)
@@ -123,9 +120,6 @@ def plot_flux_uncorrected_logarithmic(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
 ):
-    if output_dir is not None:
-        output_dir.mkdir(parents=True, exist_ok=True)
-
     flux_prediction = reader.nominal_spectra
     pot = reader.pot
 

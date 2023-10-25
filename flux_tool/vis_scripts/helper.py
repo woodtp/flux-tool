@@ -17,8 +17,11 @@ def get_all_neutrinos() -> Generator[tuple[str, str], None, None]:
 
 
 def save_figure(
-    fig: Figure, fig_name: str, output_dir: Path | str, tex_caption: str, tex_label: str
+    fig: Figure, fig_name: str, output_dir: Path, tex_caption: str, tex_label: str
 ) -> None:
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
+
     for ext in get_plot_extensions():
         file_name = f"{output_dir}/{fig_name}.{ext}"
         logging.debug(f"Saving image {file_name}...")

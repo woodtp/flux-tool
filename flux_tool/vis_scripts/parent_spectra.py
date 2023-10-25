@@ -18,9 +18,6 @@ def plot_parents(
     xlim: tuple[float, float] = (0, 20),
     stacked: bool = False,
 ) -> None:
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True, parents=True)
-
     parents = {
         "numu": ["pip", "kp", "k0l", "mum"],
         "numubar": ["pim", "km", "k0l", "mup"],

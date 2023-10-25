@@ -149,7 +149,7 @@ def plot_top_principal_components(
 
     labels = [f"PC{i} ({ev:0.1%})" for i, ev in enumerate(eigenvals, start=1)]
 
-    fig, ax = plt.subplots(figsize=(12,12))
+    fig, ax = plt.subplots(figsize=(12, 12))
 
     ax.set_box_aspect(1)
 
@@ -203,9 +203,6 @@ def plot_hadron_systs_and_pca_variances(
     xlim=(0.0, 20.0),
     ylim=(0.0, 0.03),
 ) -> None:
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True, parents=True)
-
     npcs = 8
 
     header = {"fhc": "Forward Horn Current", "rhc": "Reverse Horn Current"}
@@ -411,9 +408,6 @@ def plot_pca_systematic_shifts(
     xlim: tuple[float, float] = (0, 20),
     ylim: tuple[float, float] = (-0.1, 0.1),
 ):
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True, parents=True)
-
     shifts = reader.principal_components
 
     n_comps = 4

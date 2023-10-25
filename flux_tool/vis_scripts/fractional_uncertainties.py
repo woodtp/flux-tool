@@ -37,9 +37,6 @@ def plot_uncertainties(
     ylim: tuple[float, float] = (0, 0.22),
     flux_overlay: bool = False,
 ):
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True)
-
     for comps in fn(reader, xlim, ylim):
         fig = create_figure(comps)
 
@@ -239,8 +236,6 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
 #             ver = version[actual]
 #
 #             out_dir = output_dir / ver
-#             if not out_dir.exists():
-#                 out_dir.mkdir(parents=True)
 #             prefix = f"{horn}_{nu}"
 #             fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
 #             tex_label = fig_name
@@ -392,9 +387,6 @@ def plot_beam_systematic_shifts(
     xlim: tuple[float, float] = (0, 20),
     # ylim: tuple[float, float] = (0, 0.1),
 ):
-    if output_dir is not None:
-        output_dir.mkdir(exist_ok=True, parents=True)
-
     shifts = reader.beam_systematic_shifts
 
     for key, shift in shifts.items():
