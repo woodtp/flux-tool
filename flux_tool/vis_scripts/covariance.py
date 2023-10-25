@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 from flux_tool.vis_scripts.helper import save_figure
@@ -11,7 +12,10 @@ from flux_tool.vis_scripts.style import neutrino_labels
 
 
 def plot_matrices(
-    matrices: dict[str, Any], horn_currents: list[str], nbins: dict[str, int]
+    matrices: dict[str, Any],
+    horn_currents: list[str],
+    nbins: dict[str, int],
+    vlim: tuple[float, float] | str = (-1, 1),
 ):
     bin_ordering = [nbins["nue"], nbins["nuebar"], nbins["numu"], nbins["numubar"]]
 
@@ -28,22 +32,32 @@ def plot_matrices(
     for key, mat in matrices.items():
         fig, ax = plt.subplots()  # layout="constrained")
 
+        ax.set_box_aspect(1)
+
+        m = mat.to_numpy()[0]
+
+        if isinstance(vlim, tuple):
+            vmin, vmax = vlim
+        elif vlim == "auto":
+            vmax = np.amax(m)
+            vmin = -1 * vmax
+        else:
+            raise ValueError(f"Unrecognized argument passed to plot_matrices: {vlim=}")
+
         heatmap_kwargs = {
             "ax": ax,
             "cmap": "bwr",
             "cbar": True,
-            "vmin": -1,
-            "vmax": 1,
+            "vmin": vmin,
+            "vmax": vmax,
             "square": False,
             "cbar_kws": {"shrink": 0.81},
         }
 
-        m = mat.to_numpy()[0]
-
         sns.heatmap(m, **heatmap_kwargs)
 
         ax.invert_yaxis()  # type: ignore
-        ax.set_aspect(m.shape[1] / m.shape[0])  # type: ignore
+        # ax.set_aspect(m.shape[1] / m.shape[0])  # type: ignore
 
         ax.tick_params(  # type: ignore
             bottom=False,
@@ -150,6 +164,26 @@ def plot_hadron_correlation_matrices(
             plt.close(fig)
 
 
+def plot_hadron_covariance_matrices(
+    reader: SpectraReader, output_dir: Optional[Path] = None
+):
+    horn_currents = reader.horn_current
+    matrices = reader.hadron_covariance_matrices
+
+    nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
+
+    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto")
+
+    if output_dir is not None:
+        for key, fig in figures:
+            category = key.split("/")[1]
+            file_stem = f"{category}_covariance_matrix"
+            tex_caption = ""
+            tex_label = file_stem
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            plt.close(fig)
+
+
 def plot_beam_correlation_matrices(
     reader: SpectraReader, output_dir: Optional[Path] = None
 ):
@@ -167,6 +201,29 @@ def plot_beam_correlation_matrices(
                 category = category.split("/")[1]
             category = category.split("_", 1)[1]
             file_stem = f"{category}_correlation_matrix"
+            tex_caption = ""
+            tex_label = file_stem
+            save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore
+            plt.close(fig)
+
+
+def plot_beam_covariance_matrices(
+    reader: SpectraReader, output_dir: Optional[Path] = None
+):
+    horn_currents = reader.horn_current
+    matrices = reader.beam_covariance_matrices
+
+    nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
+
+    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto")
+
+    if output_dir is not None:
+        for key, fig in figures:
+            category = key
+            if "/" in category:
+                category = category.split("/")[1]
+            category = category.split("_", 1)[1]
+            file_stem = f"{category}_covariance_matrix"
             tex_caption = ""
             tex_label = file_stem
             save_figure(fig, file_stem, output_dir, tex_caption, tex_label)  # type: ignore

@@ -1,5 +1,7 @@
 from flux_tool.vis_scripts.covariance import (plot_beam_correlation_matrices,
-                                              plot_hadron_correlation_matrices)
+                                              plot_beam_covariance_matrices,
+                                              plot_hadron_correlation_matrices,
+                                              plot_hadron_covariance_matrices)
 from flux_tool.vis_scripts.flux_prediction import (
     plot_flux_prediction, plot_flux_uncorrected_logarithmic)
 from flux_tool.vis_scripts.fractional_uncertainties import (

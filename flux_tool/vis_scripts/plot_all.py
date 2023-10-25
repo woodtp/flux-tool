@@ -125,6 +125,18 @@ def plot_all(
             (0, 0.06),
         )
 
+    if enabled_plots["hadron_covariance_matrices"]:
+        logging.info("Plotting hadron covariance matrices...")
+        vis.plot_hadron_covariance_matrices(
+            reader, output_dir / "covariance_matrices/hadron"
+        )
+
+    if enabled_plots["beam_covariance_matrices"]:
+        logging.info("Plotting beamline focusing covariance matrices...")
+        vis.plot_beam_covariance_matrices(
+            reader, output_dir / "covariance_matrices/beam"
+        )
+
     if enabled_plots["hadron_correlation_matrices"]:
         logging.info("Plotting hadron correlation matrices...")
         vis.plot_hadron_correlation_matrices(
