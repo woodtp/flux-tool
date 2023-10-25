@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Generator, Optional
 
 from hist.hist import Hist
-from matplotlib.pyplot import Axes, Figure
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from numpy import log10
 from numpy.typing import NDArray
 from ROOT import TH1D  # type: ignore
@@ -22,10 +23,10 @@ def save_figure(
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    for ext in get_plot_extensions():
+    for ext in ["png", "pdf"]:
         file_name = f"{output_dir}/{fig_name}.{ext}"
         logging.debug(f"Saving image {file_name}...")
-        fig.savefig(file_name)
+        fig.savefig(file_name, bbox_inches="tight")
 
     tex_figure = build_latex_figure(f"{fig_name}.pdf", tex_caption, tex_label)
 
@@ -35,10 +36,6 @@ def save_figure(
 
     with open(tex_filename, "w") as texfile:
         texfile.write(tex_figure)
-
-
-def get_plot_extensions() -> Generator[str, None, None]:
-    yield from ("png", "pdf")
 
 
 def build_latex_figure(image_path: str, caption: str, label: str) -> str:
