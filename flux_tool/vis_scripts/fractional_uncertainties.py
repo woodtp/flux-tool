@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
-from typing import Callable, Iterator, Optional
+from typing import Any, Callable, Iterator, Optional
 
 import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
-from ROOT import TH1D
+from matplotlib.figure import Figure
+from numpy.typing import NDArray
+from ROOT import TH1D  # type: ignore
 
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
@@ -27,6 +29,67 @@ class PlotComponents:
     uncertainties: list[TH1D] = field(default_factory=list)
     labels: list[str] = field(default_factory=list)
     colors: list[str] = field(default_factory=list)
+    legend_kwargs: dict[str, Any] = field(
+        default_factory=lambda: dict(
+            loc="upper center", ncol=2, fontsize=20, columnspacing=0.8
+        )
+    )
+
+
+def create_figure(comps: PlotComponents) -> Figure:
+    n_spectra = len(comps.uncertainties)
+
+    half = n_spectra // 2
+
+    ls = (half) * ["-"] + (n_spectra - half) * ["--"] if n_spectra > 6 else "-"
+
+    fig, ax = plt.subplots()  # , layout="constrained")
+
+    ax.set_box_aspect(1)
+
+    if comps.total_uncertainty is not None:
+        hep.histplot(
+            ax=ax,
+            H=comps.total_uncertainty,
+            yerr=False,
+            histtype="step",
+            linestyle="-",
+            lw=3,
+            color="k",
+            label="Total",
+            edges=False,
+        )
+
+    hep.histplot(
+        ax=ax,
+        H=comps.uncertainties,
+        yerr=False,
+        histtype="step",
+        edges=False,
+        color=comps.colors,
+        lw=3,
+        ls=ls,
+        label=comps.labels,
+    )
+
+    header = {
+        "fhc": f"FHC {neutrino_labels[comps.nu]}",
+        "rhc": f"RHC {neutrino_labels[comps.nu]}",
+    }
+
+    ax.set_yticks(np.arange(0, 0.22, step=0.02))
+    ax.set_xlim(*comps.xlim)
+    ax.set_ylim(*comps.ylim)
+    ax.legend(**comps.legend_kwargs)
+    ax.set_xlabel(xlabel_enu)
+    ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
+    # ax.tick_params(labelsize=28)
+    # place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", xy=(1.0, 1.0), ha="right")
+    hep.label.exp_label(llabel="", rlabel=header[comps.horn])
+    # hep.label.exp_label(exp="DUNE", label="", ax=ax)
+    # icarus_preliminary(ax)
+
+    return fig
 
 
 def plot_uncertainties(
@@ -53,6 +116,12 @@ def plot_uncertainties(
         plt.close(fig)
 
 
+def rebin_within_xlim(hist: TH1D, binning: NDArray, xlim: tuple[float, float]) -> TH1D:
+    new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
+    hist = hist.Rebin(len(new_binning) - 1, hist.GetName(), new_binning)
+    return hist
+
+
 def plot_hadron_fractional_uncertainties(
     reader: SpectraReader,
     xlim: tuple[float, float],
@@ -62,18 +131,19 @@ def plot_hadron_fractional_uncertainties(
     hadron_uncertainties = reader.hadron_uncertainties
 
     for horn, nu in reader.horns_and_nus:
-        binning = reader.binning[nu]
-        new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
+        # binning = reader.binning[nu]
+        # new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
 
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
-        flux = flux.Rebin(len(new_binning) - 1, flux.GetName(), new_binning)
+        flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
+        # flux = flux.Rebin(len(new_binning) - 1, flux.GetName(), new_binning)
 
         total_uncertainty = hadron_uncertainties[
             f"total/hfrac_hadron_total_{horn}_{nu}"
         ].to_pyroot()
 
-        total_uncertainty = total_uncertainty.Rebin(
-            len(new_binning) - 1, total_uncertainty.GetName(), new_binning
+        total_uncertainty = rebin_within_xlim(
+            total_uncertainty, reader.binning[nu], xlim
         )
 
         uncerts = {
@@ -87,7 +157,7 @@ def plot_hadron_fractional_uncertainties(
         }
 
         for k, h in uncerts.items():
-            uncerts[k] = h.Rebin(len(new_binning) - 1, h.GetName(), new_binning)
+            uncerts[k] = rebin_within_xlim(h, reader.binning[nu], xlim)
 
         sorted_uncerts = sort_uncertainties(uncerts, flux)
 
@@ -256,10 +326,15 @@ def plot_beam_fractional_uncertainties(
 
     for horn, nu in reader.horns_and_nus:
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
+        flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
 
         total_uncertainty = uncertainties[
             f"total/hfrac_beam_total_{horn}_{nu}"
         ].to_pyroot()
+
+        total_uncertainty = rebin_within_xlim(
+            total_uncertainty, reader.binning[nu], xlim
+        )
 
         uncerts = {
             k.split("/")[0]: v.to_pyroot()
@@ -269,6 +344,8 @@ def plot_beam_fractional_uncertainties(
             and "total" not in k
             and "beam_power" not in k
         }
+        for k, h in uncerts.items():
+            uncerts[k] = rebin_within_xlim(h, reader.binning[nu], xlim)
 
         sorted_uncerts = sort_uncertainties(uncerts, flux)
 
@@ -276,7 +353,7 @@ def plot_beam_fractional_uncertainties(
 
         colors = [beam_syst_colors[k] for k in sorted_uncerts]
 
-        yield PlotComponents(
+        comps = PlotComponents(
             horn,
             nu,
             total_uncertainty,
@@ -288,64 +365,9 @@ def plot_beam_fractional_uncertainties(
             colors,
         )
 
+        comps.legend_kwargs["fontsize"] = 18
 
-def create_figure(
-    comps: PlotComponents,
-):
-    n_spectra = len(comps.uncertainties)
-
-    half = n_spectra // 2
-
-    ls = (half) * ["-"] + (n_spectra - half) * ["--"] if n_spectra > 6 else "-"
-
-    fig, ax = plt.subplots()  # , layout="constrained")
-
-    ax.set_box_aspect(1)
-
-    if comps.total_uncertainty is not None:
-        hep.histplot(
-            ax=ax,
-            H=comps.total_uncertainty,
-            yerr=False,
-            histtype="step",
-            linestyle="-",
-            lw=3,
-            color="k",
-            label="Total",
-            edges=False,
-        )
-
-    hep.histplot(
-        ax=ax,
-        H=comps.uncertainties,
-        yerr=False,
-        histtype="step",
-        edges=False,
-        color=comps.colors,
-        lw=3,
-        ls=ls,
-        label=comps.labels,
-    )
-
-    header = {
-        "fhc": f"FHC {neutrino_labels[comps.nu]}",
-        "rhc": f"RHC {neutrino_labels[comps.nu]}",
-    }
-
-    ax.set_yticks(np.arange(0, 0.22, step=0.02))
-    ax.set_xlim(*comps.xlim)
-    ax.set_ylim(*comps.ylim)
-    ncol = 2
-    ax.legend(loc="upper center", ncol=ncol, fontsize=20, columnspacing=0.8)
-    ax.set_xlabel(xlabel_enu)
-    ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
-    # ax.tick_params(labelsize=28)
-    # place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", xy=(1.0, 1.0), ha="right")
-    hep.label.exp_label(llabel="", rlabel=header[comps.horn])
-    # hep.label.exp_label(exp="DUNE", label="", ax=ax)
-    # icarus_preliminary(ax)
-
-    return fig
+        yield comps
 
 
 def create_flux_overlay(reader: SpectraReader, horn: str, nu: str) -> None:
@@ -386,7 +408,7 @@ def plot_beam_systematic_shifts(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
     # ylim: tuple[float, float] = (0, 0.1),
-):
+) -> None:
     shifts = reader.beam_systematic_shifts
 
     for key, shift in shifts.items():
@@ -396,13 +418,21 @@ def plot_beam_systematic_shifts(
         _, _, syst = tmp.split("_", 2)
 
         label = beam_syst_labels[syst]
+        color = beam_syst_colors[syst]
 
-        stats, bins = reader[f"statistical_uncertainties/hstat_{horn}_{nu}"].to_numpy()
+        stats, bins = reader[f"statistical_uncertainties/hstat_{horn}_{nu}"].to_numpy()  # type: ignore
 
         fig, ax = plt.subplots(layout="constrained", figsize=(11, 11))
 
         hep.histplot(
-            H=shift, label=label, ax=ax, yerr=False, edges=False, lw=3, zorder=10
+            H=shift,
+            label=label,
+            ax=ax,
+            yerr=False,
+            edges=False,
+            lw=3,
+            zorder=10,
+            color=color,
         )
         hep.histplot(
             H=stats,
@@ -410,7 +440,7 @@ def plot_beam_systematic_shifts(
             ax=ax,
             histtype="fill",
             label=r"$\mathrm{\sigma}_\mathsf{stat}$",
-            color="C5",
+            color="C0",
             alpha=0.4,
             zorder=0,
         )
@@ -419,7 +449,7 @@ def plot_beam_systematic_shifts(
             bins=bins,
             ax=ax,
             histtype="fill",
-            color="C5",
+            color="C0",
             alpha=0.4,
             zorder=0,
         )
@@ -434,13 +464,8 @@ def plot_beam_systematic_shifts(
             r"$\mathrm{\phi}_x - \mathrm{\phi}_\mathsf{nom}$ / $\mathrm{\phi}_\mathsf{nom}$"
         )
 
-        # icarus_preliminary(ax)
-
-        place_header(
-            ax,
-            f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})",
-            xy=(1.0, 1.0),
-            ha="right",
+        hep.label.exp_label(
+            exp="", llabel="", rlabel=f"{horn.upper()} {neutrino_labels[nu]}"
         )
 
         if output_dir is not None:

@@ -122,7 +122,7 @@ def plot_all(
             vis.plot_beam_fractional_uncertainties,
             output_dir / "beam_uncertainties",
             xlim,
-            (0, 0.06),
+            (0, 0.12),
         )
 
     if enabled_plots["hadron_covariance_matrices"]:
