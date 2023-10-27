@@ -80,7 +80,7 @@ def scale_hist(histogram: NDArray, errors: Optional[NDArray] = None, scale_facto
 
 def make_legend_no_errorbars(ax: Axes, **kwargs) -> None:
     handles, labels = ax.get_legend_handles_labels()
-    handles = [h[0] for h in handles]
+    handles = [h[0] for h in handles]  # type: ignore
     ax.legend(handles, labels, **kwargs)
 
 
