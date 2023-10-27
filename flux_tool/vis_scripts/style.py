@@ -1,3 +1,5 @@
+from itertools import cycle
+
 import matplotlib.pyplot as plt
 import mplhep
 from cycler import Cycler, cycler
@@ -9,8 +11,7 @@ style = {
     "axes.labelsize": 40,
     "axes.linewidth": 1.0,
     "axes.prop_cycle": cycler(
-        "color",
-        [
+        color=[
             "#0072B2",
             "#D55E00",
             "#009E73",
@@ -19,8 +20,9 @@ style = {
             "#E69F00",
             "#F0E442",
             # "#000000",
-        ],
-    ),
+        ]
+    )
+    * cycler(linestyle=["-", "--", "-."]),
     "axes.unicode_minus": False,
     "axes.titlesize": 40,
     "figure.figsize": [10.0, 10.0],
@@ -142,6 +144,12 @@ ppfx_mesinc_colors = {
     if "projectile" in k or "daughter" in k
 }
 
+ppfx_lines = {
+    k: ls
+    for k, ls in zip(ppfx_labels, cycle(["-", "--", ":"]))
+    if "projectile" not in k and "daughter" not in k
+}
+
 beam_syst_labels = {
     "beam_shift_y_plus": r"Beam Shift $y+1$ mm",
     "beam_shift_y_minus": r"Beam Shift $y-1$ mm",
@@ -162,6 +170,12 @@ beam_syst_labels = {
 
 beam_syst_colors = {
     k: f"C{i}" for i, k in enumerate(beam_syst_labels) if "total" not in k
+}
+
+beam_syst_lines = {
+    k: ls
+    for k, ls in zip(beam_syst_labels, cycle(["-", "--", ":"]))
+    if "total" not in k
 }
 
 

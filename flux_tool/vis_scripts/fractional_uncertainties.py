@@ -13,8 +13,8 @@ from ROOT import TH1D  # type: ignore
 from flux_tool.vis_scripts.helper import absolute_uncertainty, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
 from flux_tool.vis_scripts.style import (beam_syst_colors, beam_syst_labels,
-                                         neutrino_labels, place_header,
-                                         ppfx_colors, ppfx_labels,
+                                         beam_syst_lines, neutrino_labels,
+                                         ppfx_colors, ppfx_labels, ppfx_lines,
                                          ppfx_mesinc_colors, xlabel_enu)
 
 
@@ -29,6 +29,7 @@ class PlotComponents:
     uncertainties: list[TH1D] = field(default_factory=list)
     labels: list[str] = field(default_factory=list)
     colors: list[str] = field(default_factory=list)
+    linestyles: list[str] = field(default_factory=list)
     legend_kwargs: dict[str, Any] = field(
         default_factory=lambda: dict(
             loc="upper center", ncol=2, fontsize=20, columnspacing=0.8
@@ -68,7 +69,7 @@ def create_figure(comps: PlotComponents) -> Figure:
         edges=False,
         color=comps.colors,
         lw=3,
-        ls=ls,
+        ls=comps.linestyles,
         label=comps.labels,
     )
 
@@ -165,6 +166,8 @@ def plot_hadron_fractional_uncertainties(
 
         colors = [ppfx_colors[k] for k in sorted_uncerts]
 
+        ls = [ppfx_lines[k] for k in sorted_uncerts]
+
         yield PlotComponents(
             horn,
             nu,
@@ -175,6 +178,7 @@ def plot_hadron_fractional_uncertainties(
             list(sorted_uncerts.values()),
             hadron_labels,
             colors,
+            ls
         )
 
 
@@ -353,6 +357,8 @@ def plot_beam_fractional_uncertainties(
 
         colors = [beam_syst_colors[k] for k in sorted_uncerts]
 
+        ls = [beam_syst_lines[k] for k in sorted_uncerts]
+
         comps = PlotComponents(
             horn,
             nu,
@@ -363,6 +369,7 @@ def plot_beam_fractional_uncertainties(
             list(sorted_uncerts.values()),
             labels,
             colors,
+            ls,
         )
 
         comps.legend_kwargs["fontsize"] = 18
