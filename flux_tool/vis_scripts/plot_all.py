@@ -82,7 +82,7 @@ def plot_all(
         vis.plot_uncertainties(
             reader,
             vis.plot_hadron_fractional_uncertainties_mesinc_breakout,
-            output_dir / "hadron_uncertainties/meson_only",
+            output_dir / "hadron_uncertainties/meson_breakout",
             xlim,
         )
     if enabled_plots["hadron_uncertainties_meson_only"]:

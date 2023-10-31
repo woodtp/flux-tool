@@ -9,8 +9,8 @@ import numpy as np
 
 from flux_tool.vis_scripts.helper import create_ylabel_with_scale, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
-from flux_tool.vis_scripts.style import (neutrino_labels, xlabel_enu,
-                                         ylabel_flux)
+from flux_tool.vis_scripts.style import (colorscheme, neutrino_labels,
+                                         xlabel_enu, ylabel_flux)
 
 
 def plot_flux_prediction(
@@ -32,8 +32,10 @@ def plot_flux_prediction(
         scale_factor = 10**power
 
         nominal = [
-            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"].to_pyroot(),
-            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"].to_pyroot(),
+            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"].to_pyroot(),  # type: ignore
+            reader[
+                f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"
+            ].to_pyroot(),  # type: ignore
         ]
 
         for h in flux:
@@ -68,7 +70,9 @@ def plot_flux_prediction(
 
         marker = "o" if nu == "numu" else "s"
 
-        color = ["C0", "C1"] if nu == "numu" else ["C2", "C3"]
+        color = [colorscheme["blue"], colorscheme["vermillion"]]
+        if nu == "nue":
+            color = [colorscheme["bluishgreen"], colorscheme["reddishpurple"]]
 
         hep.histplot(
             H=flux,

@@ -5,12 +5,24 @@ import mplhep
 from cycler import Cycler, cycler
 from matplotlib.axes import Axes
 
+# Okabe-Ito Colors
+colorscheme = {
+    "blue": "#0072B2",
+    "vermillion": "#D55E00",
+    "bluishgreen": "#009E73",
+    "reddishpurple": "#CC79A7",
+    "skyblue": "#56B4E9",
+    "orange": "#E69F00",
+    "yellow": "#F0E442",
+}
+
 style = {
     "axes.formatter.limits": [-3, 3],
     "axes.formatter.use_mathtext": True,
     "axes.labelsize": 40,
     "axes.linewidth": 1.0,
-    "axes.prop_cycle": cycler(
+    "axes.prop_cycle": cycler(linestyle=["-", "--", "-."])
+    * cycler(
         color=[
             "#0072B2",
             "#D55E00",
@@ -21,8 +33,7 @@ style = {
             "#F0E442",
             # "#000000",
         ]
-    )
-    * cycler(linestyle=["-", "--", "-."]),
+    ),
     "axes.unicode_minus": False,
     "axes.titlesize": 40,
     "figure.figsize": [10.0, 10.0],
@@ -134,13 +145,13 @@ ppfx_mesinc_labels = {
 }
 
 ppfx_colors = {
-    k: f"C{i}"
-    for i, k in enumerate(ppfx_labels)
+    k: c
+    for k, c in zip(ppfx_labels, cycle(colorscheme.values()))
     if "projectile" not in k and "daughter" not in k
 }
 ppfx_mesinc_colors = {
-    k: f"C{i}"
-    for i, k in enumerate(ppfx_mesinc_labels)
+    k: c
+    for k, c in zip(ppfx_mesinc_labels, cycle(colorscheme.values()))
     if "projectile" in k or "daughter" in k
 }
 
@@ -168,9 +179,7 @@ beam_syst_labels = {
     "total": "Total",
 }
 
-beam_syst_colors = {
-    k: f"C{i}" for i, k in enumerate(beam_syst_labels) if "total" not in k
-}
+beam_syst_colors = {k: c for k, c in zip(beam_syst_labels, cycle(colorscheme.values()))}
 
 beam_syst_lines = {
     k: ls

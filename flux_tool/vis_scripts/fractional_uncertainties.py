@@ -84,11 +84,7 @@ def create_figure(comps: PlotComponents) -> Figure:
     ax.legend(**comps.legend_kwargs)
     ax.set_xlabel(xlabel_enu)
     ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
-    # ax.tick_params(labelsize=28)
-    # place_header(ax, f"{header[horn]} {neutrino_labels[nu]}", xy=(1.0, 1.0), ha="right")
     hep.label.exp_label(llabel="", rlabel=header[comps.horn])
-    # hep.label.exp_label(exp="DUNE", label="", ax=ax)
-    # icarus_preliminary(ax)
 
     return fig
 
@@ -104,8 +100,8 @@ def plot_uncertainties(
     for comps in fn(reader, xlim, ylim):
         fig = create_figure(comps)
 
-        # if flux_overlay:
-        #     create_flux_overlay(reader, horn, nu)
+        if flux_overlay:
+            create_flux_overlay(reader, comps.horn, comps.nu)
 
         if output_dir is not None:
             fig_name = comps.output_name
@@ -132,12 +128,8 @@ def plot_hadron_fractional_uncertainties(
     hadron_uncertainties = reader.hadron_uncertainties
 
     for horn, nu in reader.horns_and_nus:
-        # binning = reader.binning[nu]
-        # new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
-
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
         flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
-        # flux = flux.Rebin(len(new_binning) - 1, flux.GetName(), new_binning)
 
         total_uncertainty = hadron_uncertainties[
             f"total/hfrac_hadron_total_{horn}_{nu}"
@@ -178,7 +170,7 @@ def plot_hadron_fractional_uncertainties(
             list(sorted_uncerts.values()),
             hadron_labels,
             colors,
-            ls
+            ls,
         )
 
 
@@ -199,18 +191,15 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
     hadron_uncertainties = reader.hadron_uncertainties
 
     for horn, nu, ver in all_versions_list:
-        binning = reader.binning[nu]
-        new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
-
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
-        flux = flux.Rebin(len(new_binning) - 1, flux.GetName(), new_binning)
+        flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
 
         total_uncertainty = hadron_uncertainties[
             f"total/hfrac_hadron_total_{horn}_{nu}"
         ].to_pyroot()
 
-        total_uncertainty = total_uncertainty.Rebin(
-            len(new_binning) - 1, total_uncertainty.GetName(), new_binning
+        total_uncertainty = rebin_within_xlim(
+            total_uncertainty, reader.binning[nu], xlim
         )
 
         uncerts = {
@@ -224,7 +213,7 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
         }
 
         for k, h in uncerts.items():
-            uncerts[k] = h.Rebin(len(new_binning) - 1, h.GetName(), new_binning)
+            uncerts[k] = rebin_within_xlim(h, reader.binning[nu], xlim)
 
         sorted_uncerts = sort_uncertainties(uncerts, flux)
 
@@ -243,81 +232,6 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
             hadron_labels,
             colors,
         )
-
-
-# def plot_hadron_fractional_uncertainties_mesinc_only(
-#     reader: SpectraReader,
-#     output_dir: Optional[Path] = None,
-#     xlim: tuple[float, float] = (0, 6),
-#     ylim: tuple[float, float] = (0, 0.2),
-# ) -> None:
-#     version = {"projectile": "incoming", "daughter": "outgoing"}
-#
-#     all_versions = product(
-#         reader.horns_and_nus,
-#         ["daughter", "projectile"],
-#     )
-#     all_versions_list = [(*v[0], v[1]) for v in all_versions]
-#
-#     ppfx_correction = reader.ppfx_correction
-#     hadron_uncertainties = reader.hadron_uncertainties
-#
-#     for horn, nu, ver in all_versions_list:
-#         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
-#
-#         uncerts = {
-#             k.split("/")[0]: v.to_pyroot()
-#             for k, v in hadron_uncertainties.items()
-#             if k.endswith(nu)
-#             and horn in k
-#             and "total" not in k
-#             and ver not in k
-#             and "mesinc" in k
-#         }
-#
-#         if ver == "daughter":
-#             actual = "projectile"
-#         else:
-#             actual = "daughter"
-#
-#         # absolute_uncertainties = {
-#         #     k: absolute_uncertainty(flux, h) for k, h in hadron_uncerts.items()
-#         # }
-#         #
-#         # sorted_hadron_uncerts = {
-#         #     k: v
-#         #     for k, v in sorted(
-#         #         hadron_uncerts.items(),
-#         #         key=lambda kv: absolute_uncertainties[kv[0]].Integral(1, 11),
-#         #         reverse=True,
-#         #     )
-#         # }
-#
-#         sorted_uncerts = sort_uncertainties(uncerts, flux)
-#
-#         hadron_labels = [ppfx_labels[k] for k in sorted_uncerts]
-#
-#         # fig = create_figure(
-#         #     uncerts=list(sorted_uncerts.values()),
-#         #     horn=horn,
-#         #     nu=nu,
-#         #     labels=hadron_labels,
-#         #     xlim=xlim,
-#         #     ylim=ylim,
-#         # )
-#
-#         if output_dir is not None:
-#             ver = version[actual]
-#
-#             out_dir = output_dir / ver
-#             prefix = f"{horn}_{nu}"
-#             fig_name = f"{prefix}_{ver}_hadron_fractional_uncertainties"
-#             tex_label = fig_name
-#             tex_caption = ""
-#
-#             save_figure(fig, fig_name, out_dir, tex_caption, tex_label)
-#
-#         plt.close(fig)
 
 
 def plot_beam_fractional_uncertainties(
