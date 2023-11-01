@@ -31,6 +31,10 @@ def calculate_correlation_matrix(
     )
     return correlation_matrix
 
+def rebin_within_xlim(hist: TH1D, binning: NDArray, xlim: tuple[float, float]) -> TH1D:
+    new_binning = binning[(binning >= xlim[0]) & (binning <= xlim[1])]
+    hist = hist.Rebin(len(new_binning) - 1, hist.GetName(), new_binning)
+    return hist
 
 def convert_pandas_to_th1(
     series: pd.Series | pd.DataFrame,
