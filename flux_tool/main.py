@@ -88,7 +88,7 @@ def main():
 
     parser = ArgumentParser(
         prog="flux_uncertainties",
-        description="Interpret PPFX output into a neutrino flux prediction with uncertainties",
+        description="This package coerces PPFX output into a neutrino flux prediction with uncertainties, and stores various spectra related to the flux, e.g., fractional uncertainties, covariance matrices, etc.",
     )
     parser.add_argument(
         "-c", "--config", help="specify the path to a toml configuration file"
