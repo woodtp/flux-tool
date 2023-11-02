@@ -82,7 +82,7 @@ class AnalysisConfig:
         for nu, bins in binning.items():
             if isinstance(bins, int):
                 self.bin_edges[nu] = np.linspace(0, 20, num=bins + 1)
-            elif isinstance(bins, Iterable):
+            elif isinstance(bins, list) and len(bins) > 0:
                 self.bin_edges[nu] = np.asarray(bins)
             else:
                 # Falling back to default binning
@@ -103,8 +103,6 @@ class AnalysisConfig:
                 self.sources_path.parent / "plots/",
             )
         )
-
-        self.verify_paths()
 
         output_file = project_config["output_file_name"]
 
