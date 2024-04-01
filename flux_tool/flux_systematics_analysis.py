@@ -9,6 +9,7 @@ from ROOT import TH2D, TAxis  # type: ignore
 
 from flux_tool import uncertainty
 from flux_tool.beam_focusing_systematics import BeamFocusingSystematics
+from flux_tool.config import AnalysisConfig
 from flux_tool.hadron_production_systematics import HadronProductionSystematics
 from flux_tool.helpers import (calculate_correlation_matrix,
                                convert_groups_to_dict, convert_pandas_to_th1,
@@ -22,6 +23,7 @@ class FluxSystematicsAnalysis:
         "beam_systematics",
         "beam_systematics_is_initialized",
         "bin_edges",
+        "cfg",
         "flux_prediction",
         "hadron_systematics",
         "horn_modes",
@@ -41,10 +43,12 @@ class FluxSystematicsAnalysis:
         nominal_flux_df: pd.DataFrame,
         ppfx_correction_df: pd.DataFrame,
         bin_edges: dict[str, np.ndarray],
+        cfg: AnalysisConfig
     ) -> None:
         self.nominal_flux_df = nominal_flux_df
         self.ppfx_correction_df = ppfx_correction_df
         self.bin_edges = bin_edges
+        self.cfg = cfg
         self.beam_systematics_is_initialized = (
             len(self.nominal_flux_df["run_id"].unique()) > 1
         )
@@ -57,7 +61,7 @@ class FluxSystematicsAnalysis:
             "Calculating flux correction and hadron production systematic uncertainties..."
         )
         self.hadron_systematics = HadronProductionSystematics(
-            self.ppfx_correction_df, self.nominal_flux_df
+            self.ppfx_correction_df, self.nominal_flux_df, self.cfg
         )
 
         logging.info("Reading statistical uncertainties...")

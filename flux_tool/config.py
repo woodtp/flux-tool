@@ -51,6 +51,7 @@ class AnalysisConfig:
         "bin_edges",
         "neutrinos",
         "nominal_samples",
+        "nominal_run_id",
         "output_file_name",
         "plot_opts",
         "plots_path",
@@ -110,15 +111,25 @@ class AnalysisConfig:
 
         self.ppfx = project_config["PPFX"]
 
-        nominal_samples = self.sources_path.glob("*0015*")
-
         self.nominal_samples = {"fhc": None, "rhc": None}
 
-        for s in nominal_samples:
-            if "-" in s.name:
-                self.nominal_samples |= {"rhc": s}
-                continue
-            self.nominal_samples |= {"fhc": s}
+        sample = project_config.get("sample")
+        if sample is not None:
+            self.nominal_samples["fhc"] = self.sources_path / sample
+            _, self.nominal_run_id = self.parse_filename(self.nominal_samples["fhc"].name)
+            print("HERE1!")
+        else:
+            print("HERE2!")
+            nominal_samples = self.sources_path.glob("*0015*")
+
+            for s in nominal_samples:
+                horn, run_id = self.parse_filename(s.name)
+                self.nominal_samples |= {horn: s}
+                self.nominal_run_id = run_id
+                # if "-" in s.name:
+                #     self.nominal_samples |= {"rhc": s}
+                #     continue
+                # self.nominal_samples |= {"fhc": s}
 
     def verify_paths(self) -> None:
         for path in [self.sources_path, self.results_path, self.plots_path]:

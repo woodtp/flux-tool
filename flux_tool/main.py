@@ -64,6 +64,7 @@ def run_analysis(cfg: AnalysisConfig):
         nominal_flux_df=preprocessor.nominal_flux_df,
         ppfx_correction_df=preprocessor.ppfx_correction_df,
         bin_edges=cfg.bin_edges,
+        cfg=cfg,
     )
 
     analysis.run(pca_threshold=1)
