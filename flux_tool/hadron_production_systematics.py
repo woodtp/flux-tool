@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from ROOT import TF1, TH1D
 
-from flux_tool.config import AnalysisConfig # type: ignore
+from flux_tool.config import AnalysisConfig  # type: ignore
 
 
 @dataclass(repr=False)
@@ -150,12 +150,11 @@ class HadronProductionSystematics:
     def fractional_uncertainties(self) -> pd.DataFrame:
         cov = self.covariance_matrices.loc["fractional"]
 
-        diag_sqrt = lambda x: pd.Series(np.sqrt(np.diag(x)), index=cov.columns)
-
         uncerts = (
             cov.groupby("category")
-            .apply(diag_sqrt)
-            .stack(["horn_polarity", "neutrino_mode", "bin"])
+            .apply(lambda x:  pd.Series(np.sqrt(np.diag(x)), index=cov.columns))
+            # TODO remove future_stack=True in pandas ^3.0.0
+            .stack(["horn_polarity", "neutrino_mode", "bin"], future_stack=True)
             .sort_index()
         )
 
