@@ -72,6 +72,7 @@ class AnalysisConfig:
             "experiment": plotting["experiment"],
             "stage": plotting["stage"],
             "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0)),
+            "flux_prediction_bullets": plotting["flux_prediction_bullets"],
             "enabled": plotting["enabled"],
         }
 

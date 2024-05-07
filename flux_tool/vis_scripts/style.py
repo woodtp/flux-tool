@@ -189,7 +189,7 @@ beam_syst_lines = {
 
 
 xlabel_enu = r"E$_\mathrm{\nu}$ [GeV]"
-ylabel_flux = r"$\mathrm{\phi_\nu}$ [m$^{-2}$ GeV$^{-1}$ POT$^{-1}$]"
+ylabel_flux = r"$\mathrm{\phi_\nu}$  / GeV / POT"
 
 
 def get_prop_cycler() -> Cycler:
@@ -258,17 +258,6 @@ def icarus_preliminary(
         fontweight="bold",
         **kwargs,
     )
-
-    # ax.text(
-    #     x_pos,
-    #     1.015,
-    #     r"ICARUS Preliminary",
-    #     fontweight="bold",
-    #     # fontstyle="italic",
-    #     fontsize=fontsize,
-    #     transform=ax.transAxes,
-    #     **kwargs
-    # )
 
 
 def apply_style() -> None:
