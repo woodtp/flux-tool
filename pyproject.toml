@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/apwood-physics/flux-tool"
 
 [tool.poetry.dependencies]
-python = "3.11.*"
+python = "^3.11"
 numpy = "^1.25.0"
 pandas = "^2.0.3"
 uproot = "^5.0.9"
