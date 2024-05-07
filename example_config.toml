@@ -75,10 +75,11 @@ others = true
 thintarget = false
 
 [Plotting]
-draw_label = true # whether or not to draw the experiment label, e.g., ICARUS Preliminary
+draw_label = true                   # whether or not to draw the experiment label, e.g., ICARUS Preliminary
 experiment = "ICARUS"
 stage = "Preliminary"
-neutrino_energy_range = [0.0, 6.0] # horizontal axis limits in [GeV]
+neutrino_energy_range = [0.0, 6.0]  # horizontal axis limits in [GeV]
+flux_prediction_bullets = false     # whether or not to draw bullets or lines with error band for flux prediction
 
 [Plotting.enabled]
 # Enable/disable specific plots from the visualization output

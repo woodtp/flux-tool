@@ -59,7 +59,6 @@ def plot_ppfx_universes(
             label="Uncorrected Flux",
             # bins=bins,
             color="k",
-            lw=3,
             yerr=False,
             edges=False,
             binwnorm=1,
