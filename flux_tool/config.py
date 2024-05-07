@@ -3,7 +3,7 @@ import sys
 import tomllib
 from datetime import date
 from pathlib import Path
-from typing import Self
+from typing import Self, Generator
 
 import numpy as np
 
@@ -116,7 +116,9 @@ class AnalysisConfig:
         sample = project_config.get("sample")
         if sample is not None:
             self.nominal_samples["fhc"] = self.sources_path / sample
-            _, self.nominal_run_id = self.parse_filename(self.nominal_samples["fhc"].name)
+            _, self.nominal_run_id = self.parse_filename(
+                self.nominal_samples["fhc"].name
+            )
         else:
             nominal_samples = self.sources_path.glob("*0015*")
 
@@ -174,7 +176,7 @@ class AnalysisConfig:
         run_id = int(split[-2])
         return horn, run_id
 
-    def itersamples(self):
+    def itersamples(self) -> Generator[tuple[Path, str, int], None, None]:
         for f in self.sources_path.glob("*.root"):
             horn, run_id = self.parse_filename(f.name)
             yield f, horn, run_id
