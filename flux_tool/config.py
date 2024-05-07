@@ -116,9 +116,7 @@ class AnalysisConfig:
         if sample is not None:
             self.nominal_samples["fhc"] = self.sources_path / sample
             _, self.nominal_run_id = self.parse_filename(self.nominal_samples["fhc"].name)
-            print("HERE1!")
         else:
-            print("HERE2!")
             nominal_samples = self.sources_path.glob("*0015*")
 
             for s in nominal_samples:
