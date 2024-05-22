@@ -125,6 +125,8 @@ ppfx_labels = {
     "mesinc_daughter_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
     "mesinc_daughter_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
     "nua": r"$\mathrm{N + A \to X}$",
+    "nua_datavol": r"$\mathrm{N + A \to X}$ (Target Volumes)",
+    "nua_othervol": r"$\mathrm{N + A \to X}$ (Other Volumes)",
     "nuAlFe": r"$\mathrm{N + (Al, Fe)\to X}$",
     "att": "Attenuation",
     "others": "Others",
