@@ -1,7 +1,6 @@
 from functools import cached_property
 from itertools import product
 from pathlib import Path
-from typing import Iterable
 
 from numpy.typing import NDArray
 import uproot

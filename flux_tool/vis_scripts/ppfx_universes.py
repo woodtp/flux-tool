@@ -59,7 +59,6 @@ def plot_ppfx_universes(
             label="Uncorrected Flux",
             # bins=bins,
             color="k",
-            lw=3,
             yerr=False,
             edges=False,
             binwnorm=1,
@@ -116,18 +115,24 @@ def plot_ppfx_universes(
             loc="best",
         )
 
-        # place_header(ax, f"NuMI Simulation ({horn.upper()} {neutrino_labels[nu]})")
         hep.label.exp_label(
             exp="NuMI",
-            llabel=f"Simulation ({horn.upper()} {neutrino_labels[nu]})",
+            llabel="Simulation",
             rlabel="",
         )
 
-        # place_header(ax, "ICARUS Preliminary", (1.0, 1.0), ha="right")
+        ax.annotate(
+            f"{horn.upper()} {neutrino_labels[nu]}",
+            xy=(1.00, 1.00),
+            xycoords="axes fraction",
+            ha="right",
+            va="bottom",
+            fontweight="bold",
+        )
 
         for item, label in zip(leg.legend_handles, leg.texts):
             if label._text in ["PPFX Input", "PPFX Output"]:
-                width = item.get_window_extent(fig.canvas.get_renderer()).width
+                width = item.get_window_extent(fig.canvas.get_renderer()).width  # type: ignore
                 label.set_ha("left")
                 label.set_position((-2 * width, 0))
 

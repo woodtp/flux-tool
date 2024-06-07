@@ -37,8 +37,11 @@ class PlotComponents:
     )
 
 
-def create_figure(comps: PlotComponents) -> Figure:
+def create_figure(comps: PlotComponents) -> Figure | None:
     n_spectra = len(comps.uncertainties)
+
+    if n_spectra == 0:
+        return
 
     half = n_spectra // 2
 
@@ -99,6 +102,8 @@ def plot_uncertainties(
 ):
     for comps in fn(reader, xlim, ylim):
         fig = create_figure(comps)
+        if fig is None:
+            continue
 
         if flux_overlay:
             create_flux_overlay(reader, comps.horn, comps.nu)

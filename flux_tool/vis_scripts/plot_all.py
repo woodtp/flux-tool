@@ -51,7 +51,11 @@ def plot_all(
     if enabled_plots["flux_prediction"]:
         logging.info("Plotting flux prediction...")
         vis.plot_flux_prediction(
-            reader, output_dir / "flux_spectra/flux_prediction", xlim, label_drawer
+            reader,
+            output_dir / "flux_spectra/flux_prediction",
+            xlim,
+            label_drawer,
+            bullets=plot_opts["flux_prediction_bullets"],
         )
 
     if enabled_plots["flux_prediction_parent_spectra"]:
@@ -61,7 +65,10 @@ def plot_all(
     if enabled_plots["flux_prediction_parent_spectra_stacked"]:
         logging.info("Plotting parent spectra (stacked)...")
         vis.plot_parents(
-            reader, output_dir / "flux_spectra/parents", xlim, stacked=True
+            reader,
+            output_dir / "flux_spectra/parents",
+            xlim,
+            stacked=True,
         )
 
     if enabled_plots["ppfx_universes"]:
@@ -87,6 +94,7 @@ def plot_all(
         )
     if enabled_plots["hadron_uncertainties_meson_only"]:
         logging.info("Plotting hadron uncertainties (mesinc only)...")
+        logging.warning("Deprecated: Use hadron_uncertainties_meson instead.")
         # plot_hadron_fractional_uncertainties_mesinc_only(
         #     reader, output_dir / "hadron_uncertainties/meson_only", xlim
         # )

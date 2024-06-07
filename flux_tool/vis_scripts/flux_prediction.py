@@ -9,8 +9,12 @@ import numpy as np
 
 from flux_tool.vis_scripts.helper import create_ylabel_with_scale, save_figure
 from flux_tool.vis_scripts.spectra_reader import SpectraReader
-from flux_tool.vis_scripts.style import (colorscheme, neutrino_labels,
-                                         xlabel_enu, ylabel_flux)
+from flux_tool.vis_scripts.style import (
+    colorscheme,
+    neutrino_labels,
+    xlabel_enu,
+    ylabel_flux,
+)
 
 
 def plot_flux_prediction(
@@ -18,14 +22,18 @@ def plot_flux_prediction(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
     label_drawer: Optional[partial] = None,
+    bullets: bool = False,
 ):
     flux_prediction = reader.flux_prediction
 
     for horn, nu in product(reader.horn_current, ["nue", "numu"]):
-        flux = [
-            flux_prediction[f"hflux_{horn}_{nu}"].to_pyroot(),
-            flux_prediction[f"hflux_{horn}_{nu}bar"].to_pyroot(),
-        ]
+        hist_title = f"hflux_{horn}_{nu}"
+        nu_flux = flux_prediction[hist_title]
+        nubar_flux = flux_prediction[f"{hist_title}bar"]
+
+        flux = [nu_flux.to_pyroot(), nubar_flux.to_pyroot()]
+
+        bins = nu_flux.to_numpy()[1]
 
         max_flux = flux[0].GetMaximum()
         power = -1 * np.round(np.log10(max_flux))
@@ -33,9 +41,7 @@ def plot_flux_prediction(
 
         nominal = [
             reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"].to_pyroot(),  # type: ignore
-            reader[
-                f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"
-            ].to_pyroot(),  # type: ignore
+            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"].to_pyroot(),  # type: ignore
         ]
 
         for h in flux:
@@ -64,7 +70,7 @@ def plot_flux_prediction(
             f"Uncorrected {neutrino_labels[f'{nu}bar']} Flux",
         ]
 
-        fig, ax = plt.subplots()  # , figsize=(12,12))
+        fig, ax = plt.subplots()
 
         ax.set_box_aspect(1)
 
@@ -74,19 +80,45 @@ def plot_flux_prediction(
         if nu == "nue":
             color = [colorscheme["bluishgreen"], colorscheme["reddishpurple"]]
 
-        hep.histplot(
-            H=flux,
-            label=prediction_labels,
-            ax=ax,
-            histtype="errorbar",
-            binwnorm=True,
-            elinewidth=3,
-            capsize=4,
-            markersize=14,
-            markerfacecolor=[None, "none"],
-            color=color,
-            marker=marker,
-        )
+        if bullets:
+            hep.histplot(
+                H=flux,
+                label=prediction_labels,
+                ax=ax,
+                histtype="errorbar",
+                binwnorm=True,
+                elinewidth=3,
+                capsize=4,
+                markersize=14,
+                markerfacecolor=[None, "none"],
+                color=color,
+                marker=marker,
+            )
+        else:
+            hep.histplot(
+                H=flux,
+                label=prediction_labels,
+                ax=ax,
+                histtype="step",
+                binwnorm=True,
+                lw=2,
+                color=color,
+                yerr=False,
+                edges=False,
+            )
+            fill = ["C0", "C1"] if nu == "numu" else ["C2", "C3"]
+            for j, f in enumerate(flux):
+                err_up = [0.0] + [
+                    (f.GetBinContent(i) + f.GetBinError(i)) / f.GetBinWidth(i)
+                    for i in range(1, f.GetNbinsX() + 1)
+                ]
+                err_low = [0.0] + [
+                    (f.GetBinContent(i) - f.GetBinError(i)) / f.GetBinWidth(i)
+                    for i in range(1, f.GetNbinsX() + 1)
+                ]
+                ax.fill_between(
+                    bins, err_low, err_up, step="pre", color=fill[j], alpha=0.45
+                )
 
         hep.histplot(
             H=nominal,
@@ -98,6 +130,7 @@ def plot_flux_prediction(
             color=["k", "gray"],
             ls=["-", "--"],
             lw=2,
+            edges=False,
         )
 
         if label_drawer is not None:

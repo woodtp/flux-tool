@@ -40,7 +40,7 @@ def plot_matrices(
             vmin, vmax = vlim
         elif vlim == "auto":
             vmax = np.amax(m)
-            vmin = -1 * vmax
+            vmin = -vmax
         else:
             raise ValueError(f"Unrecognized argument passed to plot_matrices: {vlim=}")
 

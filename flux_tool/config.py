@@ -1,10 +1,9 @@
 import logging
 import sys
 import tomllib
-from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
-from typing import Self
+from typing import Self, Generator
 
 import numpy as np
 
@@ -51,6 +50,7 @@ class AnalysisConfig:
         "bin_edges",
         "neutrinos",
         "nominal_samples",
+        "nominal_run_id",
         "output_file_name",
         "plot_opts",
         "plots_path",
@@ -72,6 +72,7 @@ class AnalysisConfig:
             "experiment": plotting["experiment"],
             "stage": plotting["stage"],
             "xlim": plotting.get("neutrino_energy_range", (0.0, 20.0)),
+            "flux_prediction_bullets": plotting["flux_prediction_bullets"],
             "enabled": plotting["enabled"],
         }
 
@@ -110,15 +111,25 @@ class AnalysisConfig:
 
         self.ppfx = project_config["PPFX"]
 
-        nominal_samples = self.sources_path.glob("*0015*")
-
         self.nominal_samples = {"fhc": None, "rhc": None}
 
-        for s in nominal_samples:
-            if "-" in s.name:
-                self.nominal_samples |= {"rhc": s}
-                continue
-            self.nominal_samples |= {"fhc": s}
+        sample = project_config.get("sample")
+        if sample is not None:
+            self.nominal_samples["fhc"] = self.sources_path / sample
+            _, self.nominal_run_id = self.parse_filename(
+                self.nominal_samples["fhc"].name
+            )
+        else:
+            nominal_samples = self.sources_path.glob("*0015*")
+
+            for s in nominal_samples:
+                horn, run_id = self.parse_filename(s.name)
+                self.nominal_samples |= {horn: s}
+                self.nominal_run_id = run_id
+                # if "-" in s.name:
+                #     self.nominal_samples |= {"rhc": s}
+                #     continue
+                # self.nominal_samples |= {"fhc": s}
 
     def verify_paths(self) -> None:
         for path in [self.sources_path, self.results_path, self.plots_path]:
@@ -165,7 +176,7 @@ class AnalysisConfig:
         run_id = int(split[-2])
         return horn, run_id
 
-    def itersamples(self):
+    def itersamples(self) -> Generator[tuple[Path, str, int], None, None]:
         for f in self.sources_path.glob("*.root"):
             horn, run_id = self.parse_filename(f.name)
             yield f, horn, run_id
