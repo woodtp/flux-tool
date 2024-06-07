@@ -176,10 +176,10 @@ class AnalysisConfig:
         run_id = int(split[-2])
         return horn, run_id
 
-    def itersamples(self) -> Generator[tuple[Path, str, int], None, None]:
+    def itersamples(self) -> Generator[tuple[str, str, int], None, None]:
         for f in self.sources_path.glob("*.root"):
             horn, run_id = self.parse_filename(f.name)
-            yield f, horn, run_id
+            yield str(f), horn, run_id
 
     @classmethod
     def from_str(cls, config_str: str) -> Self:
