@@ -99,6 +99,15 @@ def plot_all(
         #     reader, output_dir / "hadron_uncertainties/meson_only", xlim
         # )
 
+    if enabled_plots["hadron_uncertainties_nua"]:
+        logging.info("Plotting hadron uncertainties (nua bands only)...")
+        vis.plot_uncertainties(
+                reader,
+                vis.plot_hadron_fractional_uncertainties_nua_breakout,
+                output_dir / "hadron_uncertainties",
+                xlim
+                )
+
     if enabled_plots["pca_scree_plot"]:
         logging.info("Plotting Eigenvalues Scree Plot")
         vis.scree_plot(reader, output_dir / "pca")

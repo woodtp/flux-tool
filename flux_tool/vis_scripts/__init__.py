@@ -7,7 +7,10 @@ from flux_tool.vis_scripts.flux_prediction import (
 from flux_tool.vis_scripts.fractional_uncertainties import (
     plot_beam_fractional_uncertainties, plot_beam_systematic_shifts,
     plot_hadron_fractional_uncertainties,
-    plot_hadron_fractional_uncertainties_mesinc_breakout, plot_uncertainties)
+    plot_hadron_fractional_uncertainties_mesinc_breakout,
+    plot_hadron_fractional_uncertainties_nua_breakout,
+    plot_uncertainties
+    )
 from flux_tool.vis_scripts.parent_spectra import plot_parents
 from flux_tool.vis_scripts.pca_plots import (
     pca_mesinc_overlay, plot_hadron_systs_and_pca_variances,

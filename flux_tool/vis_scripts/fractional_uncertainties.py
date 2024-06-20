@@ -239,6 +239,55 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
         )
 
 
+def plot_hadron_fractional_uncertainties_nua_breakout(
+    reader: SpectraReader,
+    xlim: tuple[float, float],
+    ylim: tuple[float, float],
+) -> Iterator[PlotComponents]:
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
+
+    for horn, nu in reader.horns_and_nus:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
+        flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
+
+        total_uncertainty = hadron_uncertainties[
+            f"total/hfrac_hadron_total_{horn}_{nu}"
+        ].to_pyroot()
+
+        total_uncertainty = rebin_within_xlim(
+            total_uncertainty, reader.binning[nu], xlim
+        )
+
+        uncerts = {
+                "nua": hadron_uncertainties[f"nua/hfrac_hadron_nua_{horn}_{nu}"].to_pyroot(),
+                "nua_datavol": hadron_uncertainties[f"nua_datavol/hfrac_hadron_nua_datavol_{horn}_{nu}"].to_pyroot(),
+                "nua_othervol": hadron_uncertainties[f"nua_othervol/hfrac_hadron_nua_othervol_{horn}_{nu}"].to_pyroot(),
+                "nua_other": hadron_uncertainties[f"nua_other/hfrac_hadron_nua_other_{horn}_{nu}"].to_pyroot(),
+        }
+
+        for k, h in uncerts.items():
+            uncerts[k] = rebin_within_xlim(h, reader.binning[nu], xlim)
+
+        sorted_uncerts = sort_uncertainties(uncerts, flux)
+
+        hadron_labels = [ppfx_labels[k] for k in sorted_uncerts]
+
+        colors = [ppfx_colors[k] for k in sorted_uncerts]
+
+        yield PlotComponents(
+            horn,
+            nu,
+            total_uncertainty,
+            f"{horn}_{nu}_hadron_fractional_uncertainties_nua_only",
+            xlim,
+            ylim,
+            list(sorted_uncerts.values()),
+            hadron_labels,
+            colors,
+        )
+
+
 def plot_beam_fractional_uncertainties(
     reader: SpectraReader,
     xlim: tuple[float, float],

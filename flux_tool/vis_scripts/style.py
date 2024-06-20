@@ -127,6 +127,7 @@ ppfx_labels = {
     "nua": r"$\mathrm{N + A \to X}$",
     "nua_datavol": r"$\mathrm{N + A \to X}$ (Target Volumes)",
     "nua_othervol": r"$\mathrm{N + A \to X}$ (Other Volumes)",
+    "nua_other": r"$\mathrm{N + A \to X}$ (Other)",
     "nuAlFe": r"$\mathrm{N + (Al, Fe)\to X}$",
     "att": "Attenuation",
     "others": "Others",
