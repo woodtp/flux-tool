@@ -262,6 +262,7 @@ def plot_hadron_fractional_uncertainties_nua_breakout(
         uncerts = {
                 "nua": hadron_uncertainties[f"nua/hfrac_hadron_nua_{horn}_{nu}"].to_pyroot(),
                 "nua_datavol": hadron_uncertainties[f"nua_datavol/hfrac_hadron_nua_datavol_{horn}_{nu}"].to_pyroot(),
+                "nua_datavol_negxF": hadron_uncertainties[f"nua_datavol_negxF/hfrac_hadron_nua_datavol_negxF_{horn}_{nu}"].to_pyroot(),
                 "nua_othervol": hadron_uncertainties[f"nua_othervol/hfrac_hadron_nua_othervol_{horn}_{nu}"].to_pyroot(),
                 "nua_other": hadron_uncertainties[f"nua_other/hfrac_hadron_nua_other_{horn}_{nu}"].to_pyroot(),
         }
