@@ -61,10 +61,6 @@ class AnalysisConfig:
     )
 
     def __init__(self, project_config: dict) -> None:
-        self.neutrinos: list[str] = ["nue", "nuebar", "numu", "numubar"]
-
-        def_binning = {nu: np.linspace(0, 20, num=201) for nu in self.neutrinos}
-
         plotting = project_config["Plotting"]
 
         self.plot_opts = {
@@ -76,6 +72,10 @@ class AnalysisConfig:
             "enabled": plotting["enabled"],
         }
 
+        self.neutrinos: list[str] = ["nue", "nuebar", "numu", "numubar"]
+
+        def_binning = {nu: np.linspace(0, 20, num=201) for nu in self.neutrinos}
+
         binning = project_config.get("Binning", def_binning)
 
         self.bin_edges = {}
@@ -83,8 +83,13 @@ class AnalysisConfig:
         for nu, bins in binning.items():
             if isinstance(bins, int):
                 self.bin_edges[nu] = np.linspace(0, 20, num=bins + 1)
-            elif isinstance(bins, list) and len(bins) > 0:
+            elif isinstance(bins, list) and isinstance(bins[0], float):
                 self.bin_edges[nu] = np.asarray(bins)
+            elif isinstance(bins, list) and isinstance(bins[0], list) and len(bins[0]) == 3:
+                tmp = np.array([])
+                for start, stop, step in bins:
+                    tmp = np.append(tmp, np.arange(start, stop, step))
+                self.bin_edges[nu] = tmp
             else:
                 # Falling back to default binning
                 self.bin_edges[nu] = def_binning[nu]
