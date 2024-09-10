@@ -16,6 +16,7 @@ def plot_matrices(
     horn_currents: list[str],
     nbins: dict[str, int],
     vlim: tuple[float, float] | str = (-1, 1),
+    which: Optional[str] = None,
 ):
     bin_ordering = [nbins["nue"], nbins["nuebar"], nbins["numu"], nbins["numubar"]]
 
@@ -30,6 +31,9 @@ def plot_matrices(
     numub = neutrino_labels["numubar"]
 
     for key, mat in matrices.items():
+        if which is not None and which not in key:
+            continue
+
         fig, ax = plt.subplots()  # layout="constrained")
 
         ax.set_box_aspect(1)
@@ -114,10 +118,22 @@ def plot_matrices(
             ax.text(0.245, -0.085, "FHC", ha="center", va="top", **kwargs)  # type: ignore
             ax.text(0.765, -0.085, "RHC", ha="center", va="top", **kwargs)  # type: ignore
             ax.text(  # type: ignore
-                -0.085, 0.245, "FHC", rotation=90, ha="right", va="center", **kwargs2  # type: ignore
+                -0.085,
+                0.245,
+                "FHC",
+                rotation=90,
+                ha="right",
+                va="center",
+                **kwargs2,  # type: ignore
             )
             ax.text(  # type: ignore
-                -0.085, 0.765, "RHC", rotation=90, ha="right", va="center", **kwargs2  # type: ignore
+                -0.085,
+                0.765,
+                "RHC",
+                rotation=90,
+                ha="right",
+                va="center",
+                **kwargs2,  # type: ignore
             )
 
             xpos = -0.015
@@ -145,14 +161,16 @@ def plot_matrices(
 
 
 def plot_hadron_correlation_matrices(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    which: Optional[str] = None,
 ):
     horn_currents = reader.horn_current
     matrices = reader.hadron_correlation_matrices
 
     nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
 
-    figures = plot_matrices(matrices, horn_currents, nbins)
+    figures = plot_matrices(matrices, horn_currents, nbins, which=which)
 
     if output_dir is not None:
         for key, fig in figures:
@@ -165,14 +183,16 @@ def plot_hadron_correlation_matrices(
 
 
 def plot_hadron_covariance_matrices(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    which: Optional[str] = None,
 ):
     horn_currents = reader.horn_current
     matrices = reader.hadron_covariance_matrices
 
     nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
 
-    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto")
+    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto", which=which)
 
     if output_dir is not None:
         for key, fig in figures:
@@ -185,14 +205,16 @@ def plot_hadron_covariance_matrices(
 
 
 def plot_beam_correlation_matrices(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    which: Optional[str] = None,
 ):
     horn_currents = reader.horn_current
     matrices = reader.beam_correlation_matrices
 
     nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
 
-    figures = plot_matrices(matrices, horn_currents, nbins)
+    figures = plot_matrices(matrices, horn_currents, nbins, which=which)
 
     if output_dir is not None:
         for key, fig in figures:
@@ -208,14 +230,16 @@ def plot_beam_correlation_matrices(
 
 
 def plot_beam_covariance_matrices(
-    reader: SpectraReader, output_dir: Optional[Path] = None
+    reader: SpectraReader,
+    output_dir: Optional[Path] = None,
+    which: Optional[str] = None,
 ):
     horn_currents = reader.horn_current
     matrices = reader.beam_covariance_matrices
 
     nbins = {k: len(v) - 1 for k, v in reader.binning.items()}
 
-    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto")
+    figures = plot_matrices(matrices, horn_currents, nbins, vlim="auto", which=which)
 
     if output_dir is not None:
         for key, fig in figures:
