@@ -82,6 +82,7 @@ def plot_all(
             vis.plot_hadron_fractional_uncertainties,
             output_dir / "hadron_uncertainties",
             xlim,
+            label_drawer=label_drawer,
         )
 
     if enabled_plots["hadron_uncertainties_meson"]:
@@ -98,6 +99,15 @@ def plot_all(
         # plot_hadron_fractional_uncertainties_mesinc_only(
         #     reader, output_dir / "hadron_uncertainties/meson_only", xlim
         # )
+
+    if enabled_plots["hadron_uncertainties_nua"]:
+        logging.info("Plotting hadron uncertainties (nua bands only)...")
+        vis.plot_uncertainties(
+            reader,
+            vis.plot_hadron_fractional_uncertainties_nua_breakout,
+            output_dir / "hadron_uncertainties",
+            xlim,
+        )
 
     if enabled_plots["pca_scree_plot"]:
         logging.info("Plotting Eigenvalues Scree Plot")
@@ -133,28 +143,36 @@ def plot_all(
             (0, 0.12),
         )
 
-    if enabled_plots["hadron_covariance_matrices"]:
+    if status := enabled_plots["hadron_covariance_matrices"]:
         logging.info("Plotting hadron covariance matrices...")
         vis.plot_hadron_covariance_matrices(
-            reader, output_dir / "covariance_matrices/hadron"
+            reader,
+            output_dir / "covariance_matrices/hadron",
+            which=status if isinstance(status, str) else None,
         )
 
-    if enabled_plots["beam_covariance_matrices"]:
+    if status := enabled_plots["beam_covariance_matrices"]:
         logging.info("Plotting beamline focusing covariance matrices...")
         vis.plot_beam_covariance_matrices(
-            reader, output_dir / "covariance_matrices/beam"
+            reader,
+            output_dir / "covariance_matrices/beam",
+            which=status if isinstance(status, str) else None,
         )
 
-    if enabled_plots["hadron_correlation_matrices"]:
+    if status := enabled_plots["hadron_correlation_matrices"]:
         logging.info("Plotting hadron correlation matrices...")
         vis.plot_hadron_correlation_matrices(
-            reader, output_dir / "covariance_matrices/hadron"
+            reader,
+            output_dir / "covariance_matrices/hadron",
+            which=status if isinstance(status, str) else None,
         )
 
-    if enabled_plots["beam_correlation_matrices"]:
+    if status := enabled_plots["beam_correlation_matrices"]:
         logging.info("Plotting beamline focusing correlation matrices...")
         vis.plot_beam_correlation_matrices(
-            reader, output_dir / "covariance_matrices/beam"
+            reader,
+            output_dir / "covariance_matrices/beam",
+            which=status if isinstance(status, str) else None,
         )
 
     if enabled_plots["beam_systematic_shifts"]:

@@ -1,15 +1,23 @@
 # flux_tool configuration file
 
 output_file_name = "out.root"
-sources = "/path/to/directory/containing/input/histograms"
+
+[Inputs]
+directory = "/path/to/directory/containing/input/histograms"
+fhc.nominal = "input_fhc_nominal.root"
+rhc.nominal = "input_rhc_nominal.root"
+fhc.horn_current_up = "input_fhc_horn_current_up.root"
+fhc.horn_current_down = "input_fhc_horn_current_down.root"
 
 [Binning]
 # Histogram bin edges for each neutrino flavor.
 # Accepts:
 #    1. an integer number of bins (between 0 and 20 GeV)
 #    2. An array of bin edges (NOTE: they can be variable bin widths, but must be monotonically increasing)
-#    3. If unspecified, then fixed bin widths of 100 MeV is applied along the [0, 20] GeV interval.
+#    3. An array of arrays where the inner arrays are [start, stop, step] for fixed bin widths.
+#    4. If unspecified, then fixed bin widths of 100 MeV is applied along the [0, 20] GeV interval.
 nue = 200
+
 nuebar = [
   0.0,
   0.2,
@@ -27,31 +35,17 @@ nuebar = [
   8.0,
   12.0,
 ]
-numu = []
-numubar = [
-  0.0,
-  0.2,
-  0.4,
-  0.6,
-  0.8,
-  1.0,
-  1.5,
-  2.0,
-  2.5,
-  3.0,
-  3.5,
-  4.0,
-  6.0,
-  8.0,
-  12.0,
-  20.0
-]
+
+numu = [[0.0, 6.0, 0.1], [6.0, 20.0, 0.5]]
+
+numubar = [[0.0, 6.0, 0.1], [6.0, 20.0, 0.5]]
 
   [PPFX]
 # enable/disable specific PPFX reweight categories from
 # appearing in the fractional uncertainty directory
 # true = included, false = excluded
 [PPFX.enabled]
+total = true
 attenuation = true
 mesinc = true
 mesinc_parent_K0 = true
@@ -96,7 +90,7 @@ pca_mesinc_overlay = true
 pca_top_components = true
 pca_variances = true
 pca_components = true
-hadron_covariance_matrices = true
+hadron_covariance_matrices = "total"
 hadron_correlation_matrices = true
 beam_uncertainties = true
 beam_covariance_matrices = true

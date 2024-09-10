@@ -21,7 +21,7 @@ class Preprocessor:
         fn = partial(
             normalize_flux_to_pot,
             bin_edges=cfg.bin_edges,
-            hist_name_filter=cfg.ignored_hist_filter,
+            hist_name_filter=cfg.enabled_hist_filter,
         )
         results = []
         with Progress() as progress:
@@ -34,6 +34,5 @@ class Preprocessor:
 
         df = pd.concat(results)
         self.nominal_flux_df = df.loc[df["universe"].isna()].drop("universe", axis=1)
-        # is_unis = ((df["run_id"] in cfg.nominal_samples["fhc"]) | (df["run_id"] in cfg.nominal_samples["rhc"])) & (df["universe"].notna())
         is_unis = df["universe"].notna()
         self.ppfx_correction_df = df.loc[is_unis]

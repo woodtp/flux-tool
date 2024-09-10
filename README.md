@@ -33,9 +33,10 @@ Before you begin, make sure you have the following prerequisites installed:
 ## Usage
 ```shell
 $ flux_tool -h
-usage: flux_uncertainties [-h] [-c CONFIG] [-p PRODUCTS_FILE] [-v] [-z]
+usage: flux_uncertainties [-h] [-c CONFIG] [-p PRODUCTS_FILE] [-v] [-z] [--example-config]
 
-This package coerces PPFX output into a neutrino flux prediction with uncertainties, and stores various spectra related to the flux, e.g., fractional uncertainties, covariance matrices, etc.
+This package coerces PPFX output into a neutrino flux prediction with uncertainties, and stores various spectra related to the
+flux, e.g., fractional uncertainties, covariance matrices, etc.
 
 options:
   -h, --help            show this help message and exit
@@ -46,6 +47,7 @@ options:
   -v, --verbose
   -z, --enable-compression
                         Enable compression of the output plots directory
+  --example-config      Print an example configuration file
 ```
 
 Alternatively, this package can be imported directly into an existing python script:
@@ -59,7 +61,14 @@ import flux_tool
 # flux_tool configuration file
 
 output_file_name = "out.root"
-sources = "/path/to/directory/containing/input/histograms"
+
+[Inputs]
+directory = "/path/to/directory/containing/input/histograms"
+fhc.nominal = "input_fhc_nominal.root"
+rhc.nominal = "input_rhc_nominal.root"
+fhc.horn_current_up = "input_fhc_horn_current_up.root"
+fhc.horn_current_down = "input_fhc_horn_current_down.root"
+
 
 [Binning]
 # Histogram bin edges for each neutrino flavor.
@@ -110,6 +119,7 @@ numubar = [
 # appearing in the fractional uncertainty directory
 # true = included, false = excluded
 [PPFX.enabled]
+total = true
 attenuation = true
 mesinc = true
 mesinc_parent_K0 = true
@@ -153,7 +163,7 @@ pca_mesinc_overlay = true
 pca_top_components = true
 pca_variances = true
 pca_components = true
-hadron_covariance_matrices = true
+hadron_covariance_matrices = "total" # Can specify the exact name instead of drawing all of the matrices.
 hadron_correlation_matrices = true
 beam_uncertainties = true
 beam_covariance_matrices = true

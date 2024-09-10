@@ -14,7 +14,10 @@ class Exporter:
     __slots__ = ("nominal_samples", "products", "products_file")
 
     def __init__(self, cfg: AnalysisConfig, ana: FluxSystematicsAnalysis) -> None:
-        self.nominal_samples = cfg.nominal_samples
+        self.nominal_samples = {
+            "fhc": cfg.samples["fhc"]["nominal"],
+            "rhc": cfg.samples["rhc"]["nominal"],
+        }
         self.products_file = Path(cfg.products_file)
         self.products = ana.get_products()
         self.init_products_file()

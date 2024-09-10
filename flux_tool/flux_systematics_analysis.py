@@ -1,4 +1,3 @@
-import itertools
 import logging
 from typing import Any, Callable, Optional
 
@@ -410,11 +409,7 @@ class FluxSystematicsAnalysis:
         ):
             run, cat, horn, nu = idx  # type: ignore
 
-            directory = "beam_samples/"
-            if run == 15:
-                directory += "run_15_NOMINAL/"
-            else:
-                directory += f"run_{run}/"
+            directory = f"beam_samples/run_{run}/"
 
             hist_name = "h"
 

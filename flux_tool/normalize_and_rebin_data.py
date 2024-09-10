@@ -41,16 +41,6 @@ def parse_th1_name(name: str) -> HistInfo:
             raise ValueError(f"Cannot parse TH1 name: {name}")
 
 
-@contextmanager
-def open_tfile(file_path: Path, mode: str = "read"):
-    """Context manager for opening and closing a ROOT TFile."""
-    tfile = TFile(str(file_path), mode)
-    try:
-        yield tfile
-    finally:
-        tfile.Close()
-
-
 def calculate_df(h: TH1D, horn: str, run_id: int, parsed: HistInfo) -> pd.DataFrame:
     nbins = len(h) - 2
 
@@ -80,7 +70,7 @@ def calculate_df(h: TH1D, horn: str, run_id: int, parsed: HistInfo) -> pd.DataFr
 
 
 def normalize_flux_to_pot(
-    input_file: Path,
+    input_file: str,
     horn: str,
     run_id: int,
     bin_edges: Optional[dict[str, np.ndarray]] = None,
@@ -108,19 +98,21 @@ def normalize_flux_to_pot(
             filter_name=hist_name_filter,
         )
 
-    with open_tfile(input_file) as tfile:
-        pot = tfile.Get("hpot").GetMaximum()
+    with TFile(input_file) as f:
+        pot = f.Get("hpot").GetMaximum()
 
         logging.debug(f"Normalizing to {pot} POT")
 
         hlist = []
 
         for key in histkeys:
+            if "/" not in key:
+                continue
             _, hist_name = key.rsplit("/", 1)
 
             parsed: HistInfo = parse_th1_name(hist_name)
 
-            h = tfile.Get(key)
+            h = f.Get(key)
 
             if bin_edges is not None:
                 logging.debug(f"Rebinning histogram {hist_name}")
@@ -130,6 +122,7 @@ def normalize_flux_to_pot(
             h.Scale(1.0 / pot)
 
             df = calculate_df(h, horn, run_id, parsed)
+            logging.debug(df)
 
             logging.debug("Loading histogram into DataFrame")
 

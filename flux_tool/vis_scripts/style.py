@@ -17,11 +17,11 @@ colorscheme = {
 }
 
 style = {
-    "axes.formatter.limits": [-3, 3],
+    "axes.formatter.limits": [-5, 6],
     "axes.formatter.use_mathtext": True,
-    "axes.labelsize": 40,
+    "axes.labelsize": 28,
     "axes.linewidth": 1.0,
-    "axes.prop_cycle": cycler(linestyle=["-", "--", "-."])
+    "axes.prop_cycle": cycler(linestyle=["-", "--", ":", "-."])
     * cycler(
         color=[
             "#0072B2",
@@ -35,20 +35,21 @@ style = {
         ]
     ),
     "axes.unicode_minus": False,
-    "axes.titlesize": 40,
+    "axes.titlesize": 32,
     "figure.figsize": [10.0, 10.0],
-    "font.sans-serif": "TeX Gyre Heros",
+    # "font.sans-serif": "TeX Gyre Heros",
     "font.family": "sans-serif",
-    "font.size": 26,
+    "font.size": 22,
     "grid.alpha": 0.8,
     "grid.linestyle": "--",
     "grid.linewidth": 0.5,
     "image.cmap": "cividis",
     "lines.linewidth": 2.0,
-    "legend.fontsize": 32,
+    "legend.fontsize": 28,
     "legend.handlelength": 1.5,
     "legend.borderpad": 0.5,
     "legend.frameon": False,
+    "mathtext.default": "rm",
     "mathtext.fontset": "stix",
     "savefig.transparent": True,
     "xaxis.labellocation": "center",
@@ -57,7 +58,7 @@ style = {
     "xtick.direction": "in",
     "xtick.major.size": 12,
     "xtick.minor.size": 6,
-    "xtick.major.pad": 6,
+    "xtick.major.pad": 10,
     "xtick.top": True,
     "xtick.major.top": True,
     "xtick.major.bottom": True,
@@ -113,20 +114,37 @@ ppfx_labels = {
     "pCk": r"$\mathrm{p + C \to K + X}$",
     "pCQEL": r"$\mathrm{p + C}$ (QEL)",
     "nCpi": r"$\mathrm{n + C \to \pi^\pm + X}$",
-    "mesinc": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_K0": r"$\mathrm{K^0 + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_Km": r"$\mathrm{K^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_K0": r"$\mathrm{K^0 + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_Km": r"$\mathrm{K^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_daughter_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
     "mesinc_daughter_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
     "mesinc_daughter_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
     "mesinc_daughter_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
     "mesinc_daughter_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
+    "mesinc_outgoing_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
+    "mesinc_outgoing_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
+    "mesinc_outgoing_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
+    "mesinc_outgoing_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
+    "mesinc_outgoing_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
+    "mesinc": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \left( \pi^\pm, K, N \right) + X}$",
     "nua": r"$\mathrm{N + A \to X}$",
-    "nua_datavol": r"$\mathrm{N + A \to X}$ (Target Volumes)",
-    "nua_othervol": r"$\mathrm{N + A \to X}$ (Other Volumes)",
+    "nua_datavol": r"$\mathrm{N + C}$ OOPS ($\mathrm{-0.25 \leq x_F < 0}$)",
+    "nua_inC_inPS": r"$\mathrm{N + C}$ OOPS ($\mathrm{-0.25 \leq x_F < 0}$)",
+    "nua_datavol_negxF": r"$\mathrm{N + C}$ OOPS ($\mathrm{x_F < -0.25}$)",
+    "nua_inC_OOPS": r"$\mathrm{N + C}$ OOPS ($\mathrm{x_F < -0.25}$)",
+    "nua_othervol": r"$\mathrm{N + A}$ in PS",
+    "nua_outC_Ascale": r"$\mathrm{N + A}$ in PS",
+    "nua_outC_OOPS": r"$\mathrm{N + A}$ OOPS",
+    # "nua_other": r"$\mathrm{N + A}$ Other",
+    "nua_other": r"$\mathrm{N + C}$ Other",
     "nuAlFe": r"$\mathrm{N + (Al, Fe)\to X}$",
     "att": "Attenuation",
     "others": "Others",
@@ -139,28 +157,38 @@ ppfx_mesinc_labels = {
     "mesinc_projectile_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_projectile_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_K0": r"$\mathrm{K^0 + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_Km": r"$\mathrm{K^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_Kp": r"$\mathrm{K^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_pip": r"$\mathrm{\pi^{+} + A \to \left( \pi^\pm, K, N \right) + X}$",
+    "mesinc_incoming_pim": r"$\mathrm{\pi^{-} + A \to \left( \pi^\pm, K, N \right) + X}$",
     "mesinc_daughter_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
     "mesinc_daughter_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
     "mesinc_daughter_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
     "mesinc_daughter_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
     "mesinc_daughter_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
+    "mesinc_outgoing_K0": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^0 + X}$",
+    "mesinc_outgoing_Km": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{-} + X}$",
+    "mesinc_outgoing_Kp": r"$\mathrm{\left( \pi^\pm, K \right) + A \to K^{+} + X}$",
+    "mesinc_outgoing_pip": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{+} + X}$",
+    "mesinc_outgoing_pim": r"$\mathrm{\left( \pi^\pm, K \right) + A \to \pi^{-} + X}$",
 }
 
 ppfx_colors = {
     k: c
     for k, c in zip(ppfx_labels, cycle(colorscheme.values()))
-    if "projectile" not in k and "daughter" not in k
+    if "projectile" not in k and "daughter" not in k and "incoming" not in k and "outgoing" not in k
 }
 ppfx_mesinc_colors = {
     k: c
     for k, c in zip(ppfx_mesinc_labels, cycle(colorscheme.values()))
-    if "projectile" in k or "daughter" in k
+    if "mesinc" in k
 }
 
 ppfx_lines = {
     k: ls
-    for k, ls in zip(ppfx_labels, cycle(["-", "--", ":"]))
-    if "projectile" not in k and "daughter" not in k
+    for k, ls in zip(ppfx_labels, cycle(["-", "--", ":", "-."]))
+    if "projectile" not in k and "daughter" not in k and "incoming" not in k and "outgoing" not in k
 }
 
 beam_syst_labels = {

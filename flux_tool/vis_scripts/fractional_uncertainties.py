@@ -1,3 +1,4 @@
+from functools import partial
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
@@ -18,7 +19,15 @@ from flux_tool.vis_scripts.style import (beam_syst_colors, beam_syst_labels,
                                          ppfx_mesinc_colors, xlabel_enu)
 
 
-@dataclass
+def _default_legend_kwargs() -> dict[str, Any]:
+    return {
+        "loc": "upper center",
+        "ncol": 2,
+        "fontsize": 20,
+        "columnspacing": 0.8,
+    }
+
+@dataclass(slots=True, frozen=True)
 class PlotComponents:
     horn: str
     nu: str
@@ -30,24 +39,19 @@ class PlotComponents:
     labels: list[str] = field(default_factory=list)
     colors: list[str] = field(default_factory=list)
     linestyles: list[str] = field(default_factory=list)
-    legend_kwargs: dict[str, Any] = field(
-        default_factory=lambda: dict(
-            loc="upper center", ncol=2, fontsize=20, columnspacing=0.8
-        )
-    )
+    legend_kwargs: dict[str, Any] = field(default_factory=_default_legend_kwargs)
 
-
-def create_figure(comps: PlotComponents) -> Figure | None:
+def create_figure(comps: PlotComponents, label_drawer: Optional[partial] = None) -> Figure | None:
     n_spectra = len(comps.uncertainties)
 
     if n_spectra == 0:
         return
 
-    half = n_spectra // 2
+    # half = n_spectra // 2
 
-    ls = (half) * ["-"] + (n_spectra - half) * ["--"] if n_spectra > 6 else "-"
+    # ls = (half) * ["-"] + (n_spectra - half) * ["--"] if n_spectra > 6 else "-"
 
-    fig, ax = plt.subplots()  # , layout="constrained")
+    fig, ax = plt.subplots(figsize=[10,10])  # , layout="constrained")
 
     ax.set_box_aspect(1)
 
@@ -63,16 +67,17 @@ def create_figure(comps: PlotComponents) -> Figure | None:
             label="Total",
             edges=False,
         )
-
+    colors = comps.colors if len(comps.colors) > 0 else None
+    linestyles = comps.linestyles if len(comps.linestyles) > 0 else None
     hep.histplot(
         ax=ax,
         H=comps.uncertainties,
         yerr=False,
         histtype="step",
         edges=False,
-        color=comps.colors,
+        color=colors,
         lw=3,
-        ls=comps.linestyles,
+        ls=linestyles,
         label=comps.labels,
     )
 
@@ -81,13 +86,15 @@ def create_figure(comps: PlotComponents) -> Figure | None:
         "rhc": f"RHC {neutrino_labels[comps.nu]}",
     }
 
-    ax.set_yticks(np.arange(0, 0.22, step=0.02))
+    # ax.set_yticks(np.arange(0, 0.30, step=0.02))
     ax.set_xlim(*comps.xlim)
     ax.set_ylim(*comps.ylim)
     ax.legend(**comps.legend_kwargs)
     ax.set_xlabel(xlabel_enu)
     ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
-    hep.label.exp_label(llabel="", rlabel=header[comps.horn])
+
+    if label_drawer is not None:
+        label_drawer(ax=ax, rlabel=header[comps.horn])
 
     return fig
 
@@ -97,11 +104,12 @@ def plot_uncertainties(
     fn: Callable[[SpectraReader, tuple[float, float], tuple[float, float]], Iterator],
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
-    ylim: tuple[float, float] = (0, 0.22),
+    ylim: tuple[float, float] = (0, 0.27),
+    label_drawer: Optional[partial] = None,
     flux_overlay: bool = False,
 ):
     for comps in fn(reader, xlim, ylim):
-        fig = create_figure(comps)
+        fig = create_figure(comps, label_drawer)
         if fig is None:
             continue
 
@@ -152,6 +160,11 @@ def plot_hadron_fractional_uncertainties(
             and "total" not in k
             and "projectile" not in k
             and "daughter" not in k
+            and "incoming" not in k
+            and "outgoing" not in k
+            and "inC" not in k
+            and "outC" not in k
+            and "nua_other" not in k
         }
 
         for k, h in uncerts.items():
@@ -166,16 +179,16 @@ def plot_hadron_fractional_uncertainties(
         ls = [ppfx_lines[k] for k in sorted_uncerts]
 
         yield PlotComponents(
-            horn,
-            nu,
-            total_uncertainty,
-            f"{horn}_{nu}_hadron_fractional_uncertainties",
-            xlim,
-            ylim,
-            list(sorted_uncerts.values()),
-            hadron_labels,
-            colors,
-            ls,
+            horn=horn,
+            nu=nu,
+            total_uncertainty=total_uncertainty,
+            output_name=f"{horn}_{nu}_hadron_fractional_uncertainties",
+            xlim=xlim,
+            ylim=ylim,
+            uncertainties=list(sorted_uncerts.values()),
+            labels=hadron_labels,
+            colors=colors,
+            linestyles=ls,
         )
 
 
@@ -184,11 +197,12 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
     xlim: tuple[float, float],
     ylim: tuple[float, float],
 ) -> Iterator[PlotComponents]:
-    version = {"projectile": "incoming", "daughter": "outgoing"}
+    # version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
         reader.horns_and_nus,
-        ["daughter", "projectile"],
+        # ["daughter", "projectile"],
+        ["incoming", "outgoing"],
     )
     all_versions_list = [(*v[0], v[1]) for v in all_versions]
 
@@ -199,13 +213,13 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
         flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
         flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
 
-        total_uncertainty = hadron_uncertainties[
-            f"total/hfrac_hadron_total_{horn}_{nu}"
-        ].to_pyroot()
+        # total_uncertainty = hadron_uncertainties[
+        #     f"total/hfrac_hadron_total_{horn}_{nu}"
+        # ].to_pyroot()
 
-        total_uncertainty = rebin_within_xlim(
-            total_uncertainty, reader.binning[nu], xlim
-        )
+        # total_uncertainty = rebin_within_xlim(
+        #     total_uncertainty, reader.binning[nu], xlim
+        # )
 
         uncerts = {
             k.split("/")[0]: v.to_pyroot()
@@ -227,15 +241,84 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
         colors = [ppfx_mesinc_colors[k] for k in sorted_uncerts]
 
         yield PlotComponents(
-            horn,
-            nu,
-            total_uncertainty,
-            f"{version[ver]}/{horn}_{nu}_{version[ver]}_hadron_fractional_uncertainties",
-            xlim,
-            ylim,
-            list(sorted_uncerts.values()),
-            hadron_labels,
-            colors,
+            horn=horn,
+            nu=nu,
+            total_uncertainty=None,
+            # f"{version[ver]}/{horn}_{nu}_{version[ver]}_hadron_fractional_uncertainties",
+            output_name=f"{horn}_{nu}_{ver}_mesinc_fractional_uncertainties",
+            xlim=xlim,
+            ylim=( 0, 0.15 ),
+            uncertainties=list(sorted_uncerts.values()),
+            labels=hadron_labels,
+            colors=colors,
+        )
+
+
+def plot_hadron_fractional_uncertainties_nua_breakout(
+    reader: SpectraReader,
+    xlim: tuple[float, float],
+    ylim: tuple[float, float],
+) -> Iterator[PlotComponents]:
+    ppfx_correction = reader.ppfx_correction
+    hadron_uncertainties = reader.hadron_uncertainties
+
+    for horn, nu in reader.horns_and_nus:
+        flux = ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
+        flux = rebin_within_xlim(flux, reader.binning[nu], xlim)
+
+        total_uncertainty = hadron_uncertainties[
+            f"total/hfrac_hadron_total_{horn}_{nu}"
+        ].to_pyroot()
+
+        total_uncertainty = rebin_within_xlim(
+            total_uncertainty, reader.binning[nu], xlim
+        )
+
+        # uncerts = {
+        #         "nua": hadron_uncertainties[f"nua/hfrac_hadron_nua_{horn}_{nu}"].to_pyroot(),
+        #         "nua_datavol": hadron_uncertainties[f"nua_datavol/hfrac_hadron_nua_datavol_{horn}_{nu}"].to_pyroot(),
+        #         "nua_datavol_negxF": hadron_uncertainties[f"nua_datavol_negxF/hfrac_hadron_nua_datavol_negxF_{horn}_{nu}"].to_pyroot(),
+        #         "nua_othervol": hadron_uncertainties[f"nua_othervol/hfrac_hadron_nua_othervol_{horn}_{nu}"].to_pyroot(),
+        #         "nua_other": hadron_uncertainties[f"nua_other/hfrac_hadron_nua_other_{horn}_{nu}"].to_pyroot(),
+        # }
+        uncerts = {
+                "nua": hadron_uncertainties[f"nua/hfrac_hadron_nua_{horn}_{nu}"].to_pyroot(),
+                "nua_inC_inPS": hadron_uncertainties[f"nua_inC_inPS/hfrac_hadron_nua_inC_inPS_{horn}_{nu}"].to_pyroot(),
+                "nua_inC_OOPS": hadron_uncertainties[f"nua_inC_OOPS/hfrac_hadron_nua_inC_OOPS_{horn}_{nu}"].to_pyroot(),
+                "nua_outC_Ascale": hadron_uncertainties[f"nua_outC_Ascale/hfrac_hadron_nua_outC_Ascale_{horn}_{nu}"].to_pyroot(),
+                "nua_outC_OOPS": hadron_uncertainties[f"nua_outC_OOPS/hfrac_hadron_nua_outC_OOPS_{horn}_{nu}"].to_pyroot(),
+                "nua_other": hadron_uncertainties[f"nua_other/hfrac_hadron_nua_other_{horn}_{nu}"].to_pyroot(),
+        }
+
+        for k, h in uncerts.items():
+            uncerts[k] = rebin_within_xlim(h, reader.binning[nu], xlim)
+
+        sorted_uncerts = sort_uncertainties(uncerts, flux)
+
+        hadron_labels = [ppfx_labels[k] for k in sorted_uncerts]
+
+        colors = [ppfx_colors[k] if k != "nua" else "k" for k in sorted_uncerts]
+
+        # lines = [ppfx_lines[k] for k in sorted_uncerts]
+
+        yield PlotComponents(
+            horn=horn,
+            nu=nu,
+            total_uncertainty=None,
+            output_name=f"{horn}_{nu}_hadron_fractional_uncertainties_nua_only",
+            xlim=xlim,
+            ylim=ylim,
+            uncertainties=list(sorted_uncerts.values()),
+            labels=hadron_labels,
+            colors=colors,
+            # linestyles=lines
+            legend_kwargs={
+                "loc": "upper right",
+                "ncol": 1,
+                "fontsize": 22,
+                "columnspacing": 0.8,
+                "reverse": True,
+                }
         )
 
 

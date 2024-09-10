@@ -121,9 +121,17 @@ def main():
         help="Enable compression of the output plots directory",
     )
 
+    parser.add_argument("--example-config", action="store_true", help="Print an example configuration file")
+
     args = parser.parse_args()
 
     logging.basicConfig(format="%(message)s", level=args.loglevel)
+
+    if args.example_config:
+        with open("./config.toml", "w", encoding="utf-8") as f:
+            f.write(AnalysisConfig.dump_default_config())
+        logging.info("Example configuration file written to config.toml")
+        sys.exit(0)
 
     cfg_str = args.config
 
