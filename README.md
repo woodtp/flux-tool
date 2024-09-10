@@ -119,6 +119,7 @@ numubar = [
 # appearing in the fractional uncertainty directory
 # true = included, false = excluded
 [PPFX.enabled]
+total = true
 attenuation = true
 mesinc = true
 mesinc_parent_K0 = true
