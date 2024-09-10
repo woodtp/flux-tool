@@ -40,8 +40,8 @@ def plot_flux_prediction(
         scale_factor = 10**power
 
         nominal = [
-            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}"].to_pyroot(),  # type: ignore
-            reader[f"beam_samples/run_15_NOMINAL/hnom_{horn}_{nu}bar"].to_pyroot(),  # type: ignore
+            reader[f"beam_samples/run_nominal/hnom_{horn}_{nu}"].to_pyroot(),  # type: ignore
+            reader[f"beam_samples/run_nominal/hnom_{horn}_{nu}bar"].to_pyroot(),  # type: ignore
         ]
 
         for h in flux:
@@ -70,7 +70,7 @@ def plot_flux_prediction(
             f"Uncorrected {neutrino_labels[f'{nu}bar']} Flux",
         ]
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(12,12))
 
         ax.set_box_aspect(1)
 

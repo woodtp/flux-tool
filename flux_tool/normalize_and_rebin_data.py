@@ -106,6 +106,8 @@ def normalize_flux_to_pot(
         hlist = []
 
         for key in histkeys:
+            if "/" not in key:
+                continue
             _, hist_name = key.rsplit("/", 1)
 
             parsed: HistInfo = parse_th1_name(hist_name)

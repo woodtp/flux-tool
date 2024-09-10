@@ -21,7 +21,7 @@ class Preprocessor:
         fn = partial(
             normalize_flux_to_pot,
             bin_edges=cfg.bin_edges,
-            hist_name_filter=cfg.ignored_hist_filter,
+            hist_name_filter=cfg.enabled_hist_filter,
         )
         results = []
         with Progress() as progress:

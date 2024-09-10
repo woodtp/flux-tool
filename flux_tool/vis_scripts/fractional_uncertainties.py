@@ -1,3 +1,4 @@
+from functools import partial
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
@@ -40,7 +41,7 @@ class PlotComponents:
     linestyles: list[str] = field(default_factory=list)
     legend_kwargs: dict[str, Any] = field(default_factory=_default_legend_kwargs)
 
-def create_figure(comps: PlotComponents) -> Figure | None:
+def create_figure(comps: PlotComponents, label_drawer: Optional[partial] = None) -> Figure | None:
     n_spectra = len(comps.uncertainties)
 
     if n_spectra == 0:
@@ -91,7 +92,9 @@ def create_figure(comps: PlotComponents) -> Figure | None:
     ax.legend(**comps.legend_kwargs)
     ax.set_xlabel(xlabel_enu)
     ax.set_ylabel(r"Fractional Uncertainty $\mathrm{\left( \sigma / \phi \right)}$")
-    hep.label.exp_label(exp="ICARUS", llabel="Preliminary", rlabel=header[comps.horn])
+
+    if label_drawer is not None:
+        label_drawer(ax=ax, rlabel=header[comps.horn])
 
     return fig
 
@@ -102,10 +105,11 @@ def plot_uncertainties(
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
     ylim: tuple[float, float] = (0, 0.27),
+    label_drawer: Optional[partial] = None,
     flux_overlay: bool = False,
 ):
     for comps in fn(reader, xlim, ylim):
-        fig = create_figure(comps)
+        fig = create_figure(comps, label_drawer)
         if fig is None:
             continue
 
