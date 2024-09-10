@@ -1,7 +1,13 @@
 # flux_tool configuration file
 
 output_file_name = "out.root"
-sources = "/path/to/directory/containing/input/histograms"
+
+[Inputs]
+directory = "/path/to/directory/containing/input/histograms"
+fhc.nominal = "input_fhc_nominal.root"
+rhc.nominal = "input_rhc_nominal.root"
+fhc.horn_current_up = "input_fhc_horn_current_up.root"
+fhc.horn_current_down = "input_fhc_horn_current_down.root"
 
 [Binning]
 # Histogram bin edges for each neutrino flavor.
@@ -39,6 +45,7 @@ numubar = [[0.0, 6.0, 0.1], [6.0, 20.0, 0.5]]
 # appearing in the fractional uncertainty directory
 # true = included, false = excluded
 [PPFX.enabled]
+total = true
 attenuation = true
 mesinc = true
 mesinc_parent_K0 = true
@@ -83,7 +90,7 @@ pca_mesinc_overlay = true
 pca_top_components = true
 pca_variances = true
 pca_components = true
-hadron_covariance_matrices = true
+hadron_covariance_matrices = "total"
 hadron_correlation_matrices = true
 beam_uncertainties = true
 beam_covariance_matrices = true
