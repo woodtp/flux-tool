@@ -96,6 +96,8 @@ class AnalysisConfig:
                 )
                 self.bin_edges[nu] = def_binning[nu]
 
+        logging.info(f"Using bin edges: {self.bin_edges}")
+
         self.inputs_path = (
             Path(project_config["Inputs"]["directory"]).expanduser().resolve()
         )
