@@ -96,6 +96,8 @@ class AnalysisConfig:
                 )
                 self.bin_edges[nu] = def_binning[nu]
 
+        logging.info(f"Using bin edges: {self.bin_edges}")
+
         self.inputs_path = (
             Path(project_config["Inputs"]["directory"]).expanduser().resolve()
         )
@@ -163,7 +165,7 @@ class AnalysisConfig:
     def itersamples(self) -> Generator[tuple[str, str, int], None, None]:
         for horn, samples in self.samples.items():
             for name, sample in samples.items():
-                yield str(sample), horn, name
+                yield str(sample), horn, int(name)
 
     @classmethod
     def from_str(cls, config_str: str) -> Self:

@@ -188,10 +188,10 @@ class FluxSystematicsAnalysis:
         total_mat = hp_mat + self.stat_uncert_matrix
         if self.beam_systematics_is_initialized:
             beam_tot_cov = self.beam_systematics.total_covariance_matrix.loc["absolute"]
-            beam_power_cov = self.beam_systematics.covariance_matrices.loc[
-                "absolute", "beam_power"
-            ]
-            return total_mat + beam_tot_cov + beam_power_cov
+            # beam_power_cov = self.beam_systematics.covariance_matrices.loc[
+            #     "absolute", "beam_power"
+            # ]
+            return total_mat + beam_tot_cov # + beam_power_cov
         return total_mat
 
     @property
@@ -322,13 +322,13 @@ class FluxSystematicsAnalysis:
                     enu_max,
                     self.beam_systematics.total_covariance_matrix.loc["absolute"],
                 ),
-                self.total_uncertainties_in_range(
-                    enu_min,
-                    enu_max,
-                    self.beam_systematics.covariance_matrices.loc[
-                        "absolute", "beam_power"
-                    ],
-                ),
+                # self.total_uncertainties_in_range(
+                #     enu_min,
+                #     enu_max,
+                #     self.beam_systematics.covariance_matrices.loc[
+                #         "absolute", "beam_power"
+                #     ],
+                # ),
             ]
 
         uncertainties += [
@@ -341,7 +341,7 @@ class FluxSystematicsAnalysis:
         table_keys = [
             "Hadron",
             "Beamline",
-            "Beam Power Upgrade",
+            # "Beam Power Upgrade",
             "Statistical",
             "Total",
         ]

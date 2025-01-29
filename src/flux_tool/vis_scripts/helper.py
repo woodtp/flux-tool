@@ -26,7 +26,7 @@ def save_figure(
     for ext in ["png", "pdf"]:
         file_name = f"{output_dir}/{fig_name}.{ext}"
         logging.debug(f"Saving image {file_name}...")
-        fig.savefig(file_name, bbox_inches="tight")
+        fig.savefig(file_name, bbox_inches="tight", transparent=False)
 
     tex_figure = build_latex_figure(f"{fig_name}.pdf", tex_caption, tex_label)
 

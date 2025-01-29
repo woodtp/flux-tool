@@ -80,6 +80,9 @@ def run_analysis(cfg: AnalysisConfig):
     ) as f:
         f.write(analysis.matrix_binning_str)
 
+    with open(exporter.products_file.parent / "uncertainties_table.txt", "w") as f:
+        f.write(analysis.total_uncertainty_table_latex)
+
     return exporter.products_file
 
 

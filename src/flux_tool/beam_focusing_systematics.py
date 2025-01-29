@@ -49,7 +49,7 @@ class BeamFocusingSystematics:
         )["flux"]
 
         self._run_id_map = {
-            "beam_power": 1,
+            # "beam_power": 1,  # 2024-11-25 temporarily removed b/c there were issues discovered with the 1MW geometry
             "horn_current_plus": 8,
             "horn1_x": (10, 11),
             "horn1_y": (12, 13),
