@@ -197,15 +197,15 @@ def plot_flux_uncorrected_logarithmic(
         sign_contam[1].Divide(flux[wrong_sign_nue])
 
         prediction_labels = [
-            neutrino_labels["nue"],
-            neutrino_labels["nuebar"],
             neutrino_labels["numu"],
             neutrino_labels["numubar"],
+            neutrino_labels["nue"],
+            neutrino_labels["nuebar"],
         ]
 
-        facecolor = [None, "none", None, "none"]
-        markersize = 18
-        markeredgewidth = [None, 2, None, 2]
+        # facecolor = [None, "none", None, "none"]
+        # markersize = 18
+        # markeredgewidth = [None, 2, None, 2]
 
         fig, axs = plt.subplots(
             2,
@@ -226,11 +226,13 @@ def plot_flux_uncorrected_logarithmic(
             ax=ax1,
             H=flux,
             label=prediction_labels,
-            histtype="errorbar",
-            markerfacecolor=facecolor,
-            markersize=markersize,
-            markeredgewidth=markeredgewidth,
-            marker="o",
+            linestyle=["-", "--", "-", "--"],
+            lw=3,
+            # histtype="step",
+            # markerfacecolor=facecolor,
+            # markersize=markersize,
+            # markeredgewidth=markeredgewidth,
+            # marker="o",
             binwnorm=True,
             yerr=False,
         )
@@ -242,19 +244,21 @@ def plot_flux_uncorrected_logarithmic(
             label=ratio_labels,
             yerr=False,
             edges=False,
+            color=["C0", "C2"],
         )
 
         ax1.legend(loc="upper right", ncol=2)
         ax1.set_yscale("log")
-        ax1.set_ylabel(ylabel_flux)
+        ax1.set_ylabel(ylabel_flux, fontsize='x-large')
 
         ax1.set_xlim(xlim)
         ax2.set_xlim(xlim)
+        ax2.set_ylim(0, 60)
 
-        ax2.set_xlabel(xlabel_enu)
+        ax2.set_xlabel(xlabel_enu, fontsize='x-large')
         ax2.legend(loc="upper right")
         ax2.axhline(1, ls="--", lw=2, color="k")
-        ax2.set_ylabel(" / ".join(ylabel))
+        ax2.set_ylabel(" / ".join(ylabel), fontsize='x-large')
 
         hep.label.exp_label(
             exp="NuMI",

@@ -201,9 +201,9 @@ def plot_hadron_systs_and_pca_variances(
     reader: SpectraReader,
     output_dir: Optional[Path] = None,
     xlim=(0.0, 20.0),
-    ylim=(0.0, 0.03),
+    ylim=(0.0, 0.05),
 ) -> None:
-    npcs = 8
+    npcs = 7
 
     header = {"fhc": "Forward Horn Current", "rhc": "Reverse Horn Current"}
 
@@ -227,14 +227,20 @@ def plot_hadron_systs_and_pca_variances(
             f"total/hfrac_hadron_total_{horn}_{nu}"
         ].to_pyroot()  # type: ignore
 
+        # print(hadron_uncertainties.keys())
+
         hadron_uncerts = {
             key.split("/")[0]: h.to_pyroot()
             for key, h in hadron_uncertainties.items()
             if key.endswith(nu)
             and horn in key
             and "total" not in key
-            and ver not in key
+            and version[ver] not in key
+            # and "outgoing" not in key
             and "mesinc/" not in key
+            and "oops" not in key.lower()
+            and "Ascale" not in key
+            and "inps" not in key.lower()
         }
 
         pcs = [
@@ -290,19 +296,20 @@ def plot_hadron_systs_and_pca_variances(
         for ax in axs:
             ax.set_box_aspect(1)
 
-        hep.histplot(
-            ax=axs[0],
-            H=total_variance_from_had_systs,
-            yerr=False,
-            histtype="fill",
-            linestyle="--",
-            lw=3,
-            color="w",
-            edgecolor="gray",
-            hatch="//",
-            zorder=0,
-            label=r"Total of all channels",
-        )
+        # hep.histplot(
+        #     ax=axs[0],
+        #     H=total_variance_from_had_systs,
+        #     yerr=False,
+        #     histtype="fill",
+        #     linestyle="--",
+        #     lw=3,
+        #     color="w",
+        #     edgecolor="gray",
+        #     hatch="//",
+        #     zorder=0,
+        #     label=r"Total of all channels",
+        #     edges=False,
+        # )
 
         hep.histplot(
             ax=axs[0],
@@ -314,6 +321,7 @@ def plot_hadron_systs_and_pca_variances(
             color="k",
             label="PPFX Total",
             zorder=10,
+            edges=False,
         )
 
         hep.histplot(
@@ -331,26 +339,28 @@ def plot_hadron_systs_and_pca_variances(
             ax=axs[1],
             H=total_variance,
             yerr=False,
-            histtype="fill",
+            # histtype="fill",
             linestyle="--",
             lw=3,
             color="w",
             edgecolor="k",
-            hatch="//",
+            # hatch="//",
             zorder=0,
             label=r"PPFX Total",
+            edges=False,
         )
 
-        hep.histplot(
-            ax=axs[1],
-            H=total_variance,
-            yerr=False,
-            histtype="step",
-            linestyle="--",
-            lw=3,
-            color="k",
-            zorder=10,
-        )
+        # hep.histplot(
+        #     ax=axs[1],
+        #     H=total_variance,
+        #     yerr=False,
+        #     histtype="step",
+        #     linestyle="--",
+        #     lw=3,
+        #     color="k",
+        #     zorder=10,
+        #     edges=False,
+        # )
 
         hep.histplot(
             ax=axs[1],
@@ -366,7 +376,7 @@ def plot_hadron_systs_and_pca_variances(
         for ax in axs:
             ax.set_xlim(*xlim)
             ax.set_ylim(*ylim)
-            ax.legend(loc="upper center", columnspacing=0.8, fontsize=21, ncol=2)
+            ax.legend(loc="upper center", columnspacing=0.8, fontsize=22, ncol=2)
             ax.set_xlabel(xlabel_enu)
 
         axs[0].set_ylabel(
