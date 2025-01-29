@@ -89,7 +89,7 @@ class HadronProductionSystematics:
         flux_pt = pd.pivot_table(self.ppfx_dataframe, index=index, values="flux")
         nom_pt = pd.pivot_table(
             self.nominal_dataframe.loc[
-                (self.nominal_dataframe["run_id"] == "nominal")
+                ((self.nominal_dataframe["run_id"] == 15) | (self.nominal_dataframe["run_id"] == "nominal"))
                 & (self.nominal_dataframe["category"] == "nominal")
             ],
             values="flux",
