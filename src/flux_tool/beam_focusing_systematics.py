@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
+from flux_tool.config import AnalysisConfig
 from flux_tool.helpers import (calculate_correlation_matrix,
                                convert_pandas_to_th1)
 
@@ -13,7 +14,9 @@ from flux_tool.helpers import (calculate_correlation_matrix,
 def smooth_stat_fluctuations(
     df: pd.DataFrame, bin_edges: dict[str, np.ndarray]
 ) -> pd.DataFrame:
-    groups = df.stack("run_id").groupby(by=["run_id", "horn_polarity", "neutrino_mode"])
+    groups = df.stack("run_id", future_stack=True).groupby(
+        by=["run_id", "horn_polarity", "neutrino_mode"]
+    )
 
     smoothed_flux_list = []
 
@@ -35,13 +38,15 @@ def smooth_stat_fluctuations(
 class BeamFocusingSystematics:
     beam_flux_df: pd.DataFrame
     bin_edges: dict[str, np.ndarray]
-    smoothing: Optional[bool] = False
+    cfg: AnalysisConfig
+    smoothing: bool = False
+    enable_selection: bool = False
     nominal_run: pd.DataFrame = field(init=False)
     _beam_pt: pd.DataFrame = field(init=False)
     _run_id_map: dict[str, int | tuple[int, int]] = field(init=False)
 
     def __post_init__(self) -> None:
-        self._beam_pt = pd.pivot_table(
+        self._beam_pt = pd.pivot_table(  # type: ignore
             data=self.beam_flux_df.query("category == 'nominal'"),
             values=["flux"],
             index=["horn_polarity", "neutrino_mode", "bin"],
@@ -61,9 +66,10 @@ class BeamFocusingSystematics:
             "beam_div": 32,
         }
 
-        self.nominal_run = self._beam_pt[[15]]
+        self.nominal_run = self._beam_pt[[self.cfg.nominal_id]]  # type: ignore
 
-        self.apply_systematic_selection()
+        if self.enable_selection:
+            self.apply_systematic_selection()
 
     def is_excluded(self, run_id: int) -> bool:
         """Checks if run_id appears in the list of run_ids in the _run_id_map member variable.
@@ -110,31 +116,40 @@ class BeamFocusingSystematics:
         self.flux_shifts.drop(ids_to_drop, axis=1, inplace=True)
 
         water_layer_indexer = (
-            slice(None),
-            slice(None),
-            slice(None),
-            self.energy_to_bin_slice(1.0, 20.0),
-        ), (21, 22)
+            (
+                slice(None),
+                slice(None),
+                slice(None),
+                self.energy_to_bin_slice(1.0, 20.0),
+            ),
+            (21, 22),
+        )
         self.flux_shifts.loc[water_layer_indexer] *= 0.0
 
         div_indexer = (
-            slice(None),
-            slice(None),
-            slice(None),
-            self.energy_to_bin_slice(0, 1.0),
-        ), 32
+            (
+                slice(None),
+                slice(None),
+                slice(None),
+                self.energy_to_bin_slice(0, 1.0),
+            ),
+            32,
+        )
         self.flux_shifts.loc[div_indexer] *= 0.0
 
     @cached_property
     def beam_systematic_shifts(self):
         flux_systs = {}
         shifts = self.flux_shifts.loc["absolute"]
-        for key, run_id in self._run_id_map.items():
-            if isinstance(run_id, tuple):
-                id1, id2 = run_id
-                flux_systs[key] = 0.5 * (shifts[id1] + shifts[id2])
-                continue
-            flux_systs[key] = shifts[run_id]
+        if self.enable_selection:
+            for key, run_id in self._run_id_map.items():
+                if isinstance(run_id, tuple):
+                    id1, id2 = run_id
+                    flux_systs[key] = 0.5 * (shifts[id1] + shifts[id2])
+                    continue
+                flux_systs[key] = shifts[run_id]
+        else:
+            flux_systs = shifts
 
         df = pd.DataFrame(flux_systs, index=shifts.index)
 
@@ -150,7 +165,7 @@ class BeamFocusingSystematics:
         beam_shifts.columns.name = "category"
 
         beam_shifts = (
-            beam_shifts.stack("category")
+            beam_shifts.stack("category", future_stack=True)
             .reorder_levels(
                 ["scale", "category", "horn_polarity", "neutrino_mode", "bin"]
             )
@@ -173,11 +188,11 @@ class BeamFocusingSystematics:
 
         nom_mat = np.outer(self.nominal_run, self.nominal_run)
 
-        grp_divide = lambda grp: np.divide(
-            grp.droplevel(0), nom_mat, out=np.zeros_like(grp), where=nom_mat != 0
+        covs_frac = covs.groupby(level=0).apply(
+            lambda grp: np.divide(
+                grp.droplevel(0), nom_mat, out=np.zeros_like(grp), where=nom_mat != 0
+            )
         )
-
-        covs_frac = covs.groupby(level=0).apply(grp_divide)
 
         beam_covariance_matrices = pd.concat(
             [covs, covs_frac],
@@ -240,6 +255,11 @@ class BeamFocusingSystematics:
         cov_groups = covs.groupby(level=levels[0])
 
         # for some reason I get -0.0 for some values on the diagonal, so I'm wrapping in np.abs
-        diag_sqrt = lambda x: pd.Series(np.sqrt(np.abs(np.diag(x))), index=covs.columns)
+        def diag_sqrt(x):
+            return pd.Series(np.sqrt(np.abs(np.diag(x))), index=covs.columns)
 
-        return cov_groups.apply(diag_sqrt).stack(levels[1:]).sort_index()  # type: ignore
+        return (
+            cov_groups.apply(diag_sqrt)
+            .stack(levels[1:], future_stack=True)
+            .sort_index()
+        )  # type: ignore

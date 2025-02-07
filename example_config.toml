@@ -4,10 +4,11 @@ output_file_name = "out.root"
 
 [Inputs]
 directory = "/path/to/directory/containing/input/histograms"
-fhc.nominal = "input_fhc_nominal.root"
-rhc.nominal = "input_rhc_nominal.root"
-fhc.horn_current_up = "input_fhc_horn_current_up.root"
-fhc.horn_current_down = "input_fhc_horn_current_down.root"
+nominal_id = 15
+fhc.15 = "input_fhc_nominal.root"
+rhc.15 = "input_rhc_nominal.root"
+fhc.8 = "input_fhc_horn_current_up.root"
+fhc.9 = "input_fhc_horn_current_down.root"
 
 [Binning]
 # Histogram bin edges for each neutrino flavor.

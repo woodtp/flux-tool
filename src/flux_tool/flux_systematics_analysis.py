@@ -42,7 +42,7 @@ class FluxSystematicsAnalysis:
         nominal_flux_df: pd.DataFrame,
         ppfx_correction_df: pd.DataFrame,
         bin_edges: dict[str, np.ndarray],
-        cfg: AnalysisConfig
+        cfg: AnalysisConfig,
     ) -> None:
         self.nominal_flux_df = nominal_flux_df
         self.ppfx_correction_df = ppfx_correction_df
@@ -53,7 +53,21 @@ class FluxSystematicsAnalysis:
         )
         self.horn_modes = list(self.nominal_flux_df["horn_polarity"].unique())
 
-    def run(self, pca_threshold: float = 1) -> None:
+    def run(self, pca_threshold: float = 1, apply_smoothing: bool = False, enable_beam_selection: bool = False) -> None:
+        """Run the analysis.
+        Parameters
+        ----------
+            pca_threshold : float, optional
+                The fractional variance threshold for the PCA above which components are discarded.
+                Takes a value between 0 and 1, where '1' keeps all components (default is 1)
+            apply_smoothing : bool, optional
+                Whether to apply smoothing to the beam fluxes (default is false)
+            enable_beam_selection : bool, optional
+                Enables the predefined beam systematics handling outlined in SBN-doc-27384-v6 (default is false)
+        Returns
+        -------
+            None
+        """
         logging.info("\n=============== BEGINNING ANALYSIS ===============")
 
         logging.info(
@@ -99,7 +113,9 @@ class FluxSystematicsAnalysis:
             self.beam_systematics = BeamFocusingSystematics(
                 beam_flux_df=self.nominal_flux_df,
                 bin_edges=self.bin_edges,
-                smoothing=True,
+                cfg=self.cfg,
+                smoothing=apply_smoothing,
+                enable_selection=enable_beam_selection,
             )
 
         total_cov = self.hadron_systematics.covariance_matrices.loc[

@@ -47,6 +47,7 @@ class AnalysisConfig:
         "bin_edges",
         "enabled_histogram_names",
         "neutrinos",
+        "nominal_id",
         "output_file_name",
         "plot_opts",
         "plots_path",
@@ -98,6 +99,14 @@ class AnalysisConfig:
 
         logging.info(f"Using bin edges: {self.bin_edges}")
 
+        try:
+            self.nominal_id = project_config["Inputs"]["nominal_id"]
+        except KeyError:
+            logging.error(
+                "No nominal ID specified. Please provide a nominal ID in the [Inputs] section."
+            )
+            sys.exit(1)
+
         self.inputs_path = (
             Path(project_config["Inputs"]["directory"]).expanduser().resolve()
         )
@@ -132,7 +141,7 @@ class AnalysisConfig:
                 continue
             self.enabled_histogram_names.append(k)
 
-        inputs = {k: v for k, v in project_config["Inputs"].items() if k != "directory"}
+        inputs = {k: v for k, v in project_config["Inputs"].items() if k != "directory" and k != "nominal_id"}
 
         self.samples = {}
         for horn, input in inputs.items():

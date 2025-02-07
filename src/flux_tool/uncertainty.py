@@ -27,7 +27,7 @@ def flux_uncertainty(cov: pd.DataFrame, total_flux: float) -> float:
 def ratio_uncertainty(
     cov: pd.DataFrame, total_nue_flux: float, total_numu_flux: float
 ) -> float:
-    reordered_mat = cov.stack("neutrino_mode").swaplevel(i=1, j=2).sort_index()
+    reordered_mat = cov.stack("neutrino_mode", future_stack=True).swaplevel(i=1, j=2).sort_index()
     if reordered_mat is None:
         raise ValueError("cov is not of the expected format.")
 

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Iterable
 from uuid import uuid4
 
 import numpy as np
@@ -38,15 +38,15 @@ def rebin_within_xlim(hist: TH1D, binning: NDArray, xlim: tuple[float, float]) -
 
 def convert_pandas_to_th1(
     series: pd.Series | pd.DataFrame,
-    bin_edges: np.ndarray,
-    hist_name: Optional[str] = None,
+    bin_edges: Iterable[float],
     hist_title: str = "",
+    hist_name: Optional[str] = None,
     uncerts: Optional[pd.Series] = None,
 ) -> TH1D:
     if hist_name is None:
         hist_name = str(uuid4())
 
-    th1 = TH1D(hist_name, hist_title, len(bin_edges) - 1, bin_edges)
+    th1 = TH1D(hist_name, hist_title, len(bin_edges) - 1, np.asarray(bin_edges))
 
     if uncerts is None:
         for b, val in enumerate(series.values):

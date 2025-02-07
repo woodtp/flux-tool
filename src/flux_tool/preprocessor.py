@@ -34,5 +34,4 @@ class Preprocessor:
 
         df = pd.concat(results)
         self.nominal_flux_df = df.loc[df["universe"].isna()].drop("universe", axis=1)
-        is_unis = df["universe"].notna()
-        self.ppfx_correction_df = df.loc[is_unis]
+        self.ppfx_correction_df = df.loc[(df["run_id"] == cfg.nominal_id) & ~df["universe"].isna()]
