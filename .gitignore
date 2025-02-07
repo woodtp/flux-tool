@@ -3,3 +3,4 @@ dist/
 .coverage
 .python-version
 *.egg-info/
+.env
