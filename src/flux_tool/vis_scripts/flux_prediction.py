@@ -19,11 +19,14 @@ from flux_tool.vis_scripts.style import (
 
 def plot_flux_prediction(
     reader: SpectraReader,
+    nominal_id: str,
     output_dir: Optional[Path] = None,
     xlim: tuple[float, float] = (0, 20),
     label_drawer: Optional[partial] = None,
     bullets: bool = False,
 ):
+    print("[TODO] This is broken right now. :(")
+    return
     flux_prediction = reader.flux_prediction
 
     for horn, nu in product(reader.horn_current, ["nue", "numu"]):
@@ -31,24 +34,24 @@ def plot_flux_prediction(
         nu_flux = flux_prediction[hist_title]
         nubar_flux = flux_prediction[f"{hist_title}bar"]
 
-        flux = [nu_flux.to_pyroot(), nubar_flux.to_pyroot()]
+        flux = [nu_flux.to_numpy()[0], nubar_flux.to_numpy()[0]]
 
         bins = nu_flux.to_numpy()[1]
 
-        max_flux = flux[0].GetMaximum()
+        max_flux = flux[0].max()
         power = -1 * np.round(np.log10(max_flux))
         scale_factor = 10**power
 
         nominal = [
-            reader[f"beam_samples/run_nominal/hnom_{horn}_{nu}"].to_pyroot(),  # type: ignore
-            reader[f"beam_samples/run_nominal/hnom_{horn}_{nu}bar"].to_pyroot(),  # type: ignore
+            reader[f"beam_samples/run_{nominal_id}/hnom_{horn}_{nu}"].to_numpy()[0],  # type: ignore
+            reader[f"beam_samples/run_{nominal_id}/hnom_{horn}_{nu}bar"].to_numpy()[0],  # type: ignore
         ]
 
         for h in flux:
-            h.Scale(scale_factor)
+            h /= scale_factor
 
         for h in nominal:
-            h.Scale(scale_factor)
+            h /= scale_factor
 
         ylabel = create_ylabel_with_scale(int(power))
 
@@ -83,6 +86,7 @@ def plot_flux_prediction(
         if bullets:
             hep.histplot(
                 H=flux,
+                bins=bins,
                 label=prediction_labels,
                 ax=ax,
                 histtype="errorbar",
@@ -97,6 +101,7 @@ def plot_flux_prediction(
         else:
             hep.histplot(
                 H=flux,
+                bins=bins,
                 label=prediction_labels,
                 ax=ax,
                 histtype="step",
@@ -122,6 +127,7 @@ def plot_flux_prediction(
 
         hep.histplot(
             H=nominal,
+            bins=bins,
             label=nominal_labels,
             binwnorm=True,
             ax=ax,
@@ -162,14 +168,14 @@ def plot_flux_uncorrected_logarithmic(
 
     for horn in reader.horn_current:
         flux = [
-            flux_prediction[f"{horn}/nom/hnom_numu"].to_pyroot(),
-            flux_prediction[f"{horn}/nom/hnom_numubar"].to_pyroot(),
-            flux_prediction[f"{horn}/nom/hnom_nue"].to_pyroot(),
-            flux_prediction[f"{horn}/nom/hnom_nuebar"].to_pyroot(),
+            flux_prediction[f"{horn}/nom/hnom_numu"].to_numpy(),
+            flux_prediction[f"{horn}/nom/hnom_numubar"].to_numpy(),
+            flux_prediction[f"{horn}/nom/hnom_nue"].to_numpy(),
+            flux_prediction[f"{horn}/nom/hnom_nuebar"].to_numpy(),
         ]
 
         for f in flux:
-            f.Scale(1 / pot[horn])
+            f = f[0] / pot[horn], f[1]
 
         ylabel = [r"$\mathrm{\phi_\nu}$", r"$\mathrm{\phi_{\bar{\nu}}}$"]
 
@@ -191,10 +197,10 @@ def plot_flux_uncorrected_logarithmic(
 
         ratio_labels = map("/".join, ratio_nus)
 
-        sign_contam = [flux[right_sign_numu].Clone(), flux[right_sign_nue].Clone()]
+        sign_contam = [flux[right_sign_numu], flux[right_sign_nue]]
 
-        sign_contam[0].Divide(flux[wrong_sign_numu])
-        sign_contam[1].Divide(flux[wrong_sign_nue])
+        sign_contam[0] = (np.divide(flux[right_sign_numu][0], flux[wrong_sign_numu][0], out=np.zeros_like(flux[right_sign_numu][0]), where=flux[wrong_sign_numu][0]!=0), flux[right_sign_numu][1])
+        sign_contam[0] = (np.divide(flux[right_sign_nue][0], flux[wrong_sign_nue][0], out=np.zeros_like(flux[right_sign_nue][0]), where=flux[wrong_sign_nue][0]!=0), flux[right_sign_nue][1])
 
         prediction_labels = [
             neutrino_labels["numu"],

@@ -89,14 +89,16 @@ class HadronProductionSystematics:
         flux_pt = pd.pivot_table(self.ppfx_dataframe, index=index, values="flux")
         nom_pt = pd.pivot_table(
             self.nominal_dataframe.loc[
-                ((self.nominal_dataframe["run_id"] == 15) | (self.nominal_dataframe["run_id"] == "nominal"))
+                (self.nominal_dataframe["run_id"] == self.cfg.nominal_id )
                 & (self.nominal_dataframe["category"] == "nominal")
             ],
             values="flux",
             index=("horn_polarity", "neutrino_mode", "bin"),
         )
-        self._flux_pt = flux_pt["flux"]
-        self._nom_pt = nom_pt["flux"]
+        assert not flux_pt.empty, "No flux data found in the PPFX dataframe."
+        assert not nom_pt.empty, "No flux data found in the beam samples dataframe."
+        self._flux_pt = flux_pt["flux"]  # type: ignore
+        self._nom_pt = nom_pt["flux"]    # type: ignore
 
     @cached_property
     def ppfx_corrected_flux(self) -> pd.DataFrame:
@@ -125,8 +127,8 @@ class HadronProductionSystematics:
             level="category"
         )
 
-        cov_abs = group_abs.cov()
-        cov_frac = group_frac.cov()
+        cov_abs = group_abs.cov()  # type: ignore
+        cov_frac = group_frac.cov()  # type: ignore
 
         cov = pd.concat(
             [cov_frac, cov_abs],
@@ -142,7 +144,7 @@ class HadronProductionSystematics:
             ("horn_polarity", "neutrino_mode", "bin")
         ).groupby(level="category")
 
-        corr = group.corr().fillna(0)
+        corr = group.corr().fillna(0)  # type: ignore
 
         return corr
 
@@ -170,6 +172,6 @@ class HadronProductionSystematics:
 
         flux_fits = {}
         for idx, b in bins_df.groupby(level=["horn_polarity", "neutrino_mode", "bin"]):
-            flux_fits |= {idx: FluxUniverseFit(b.droplevel(0))}
+            flux_fits |= {idx: FluxUniverseFit(b.droplevel(0))}  # type: ignore
 
         return flux_fits

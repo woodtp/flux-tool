@@ -15,11 +15,14 @@ from flux_tool.vis_scripts.style import style
 
 def plot_all(
     products_file: Path | str,
+    nominal_id: str,
     output_dir: Path,
     plot_opts: dict[str, Any],
     binning: dict[str, NDArray],
 ):
     plt.style.use(style)
+
+    nominal_id = str(nominal_id)
 
     reader = SpectraReader(products_file, binning)
 
@@ -52,6 +55,7 @@ def plot_all(
         logging.info("Plotting flux prediction...")
         vis.plot_flux_prediction(
             reader,
+            nominal_id,
             output_dir / "flux_spectra/flux_prediction",
             xlim,
             label_drawer,
@@ -100,7 +104,7 @@ def plot_all(
         #     reader, output_dir / "hadron_uncertainties/meson_only", xlim
         # )
 
-    if enabled_plots["hadron_uncertainties_nua"]:
+    if enabled_plots.get("hadron_uncertainties_nua", False):
         logging.info("Plotting hadron uncertainties (nua bands only)...")
         vis.plot_uncertainties(
             reader,

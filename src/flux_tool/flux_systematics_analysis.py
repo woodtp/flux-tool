@@ -443,7 +443,7 @@ class FluxSystematicsAnalysis:
                 series=spectra["flux"],
                 bin_edges=self.bin_edges[nu],
                 hist_name=directory + hist_name,
-                uncerts=spectra["stat_uncert"],
+                uncerts=spectra["stat_uncert"],  # type: ignore
             )
             th1.SetTitle(";E_{#nu} [GeV]; #Phi_{#nu} [m^{-2} POT^{-1}]")
 

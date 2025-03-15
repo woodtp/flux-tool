@@ -137,6 +137,8 @@ def plot_hadron_fractional_uncertainties(
     xlim: tuple[float, float],
     ylim: tuple[float, float],
 ) -> Iterator[PlotComponents]:
+    print("[TODO] This is broken right now :(")
+    return
     ppfx_correction = reader.ppfx_correction
     hadron_uncertainties = reader.hadron_uncertainties
 
@@ -197,6 +199,8 @@ def plot_hadron_fractional_uncertainties_mesinc_breakout(
     xlim: tuple[float, float],
     ylim: tuple[float, float],
 ) -> Iterator[PlotComponents]:
+    print("[TODO] This is broken right now :(")
+    return
     # version = {"projectile": "incoming", "daughter": "outgoing"}
 
     all_versions = product(
@@ -259,6 +263,8 @@ def plot_hadron_fractional_uncertainties_nua_breakout(
     xlim: tuple[float, float],
     ylim: tuple[float, float],
 ) -> Iterator[PlotComponents]:
+    print("[TODO] This is broken right now :(")
+    return
     ppfx_correction = reader.ppfx_correction
     hadron_uncertainties = reader.hadron_uncertainties
 
@@ -327,6 +333,8 @@ def plot_beam_fractional_uncertainties(
     xlim: tuple[float, float],
     ylim: tuple[float, float],
 ) -> Iterator[PlotComponents]:
+    print("[TODO] This is broken right now :(")
+    return
     ppfx_correction = reader.ppfx_correction
     uncertainties = reader.beam_uncertainties
 
@@ -380,6 +388,8 @@ def plot_beam_fractional_uncertainties(
 
 
 def create_flux_overlay(reader: SpectraReader, horn: str, nu: str) -> None:
+    print("[TODO] This is broken right now :(")
+    return
     flux = reader.ppfx_correction[f"htotal_{horn}_{nu}"].to_pyroot()
     ax1 = plt.gca()
     ax2 = ax1.twinx()
